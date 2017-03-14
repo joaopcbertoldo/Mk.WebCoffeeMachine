@@ -1,0 +1,8 @@
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\bin\Debug\TesteArduinoSerialCom.exe.config
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\bin\Debug\TesteArduinoSerialCom.exe
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\bin\Debug\TesteArduinoSerialCom.pdb
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\bin\Debug\Arduino4Net.dll
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\bin\Debug\Arduino4Net.pdb
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\obj\Debug\TesteArduinoSerialCom.csprojResolveAssemblyReference.cache
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\obj\Debug\TesteArduinoSerialCom.exe
+C:\Repository\git\cafeteiramk\TesteArduinoSerialCom\TesteArduinoSerialCom\obj\Debug\TesteArduinoSerialCom.pdb
