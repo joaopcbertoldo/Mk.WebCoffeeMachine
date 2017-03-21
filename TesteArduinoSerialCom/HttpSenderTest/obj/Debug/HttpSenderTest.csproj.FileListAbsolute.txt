@@ -1,0 +1,8 @@
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\bin\Debug\HttpSenderTest.exe.config
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\bin\Debug\HttpSenderTest.exe
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\bin\Debug\HttpSenderTest.pdb
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\bin\Debug\Newtonsoft.Json.dll
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\bin\Debug\Newtonsoft.Json.xml
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\obj\Debug\HttpSenderTest.csprojResolveAssemblyReference.cache
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\obj\Debug\HttpSenderTest.exe
+C:\Repository\Mk.WebCoffeeMachine\TesteArduinoSerialCom\HttpSenderTest\obj\Debug\HttpSenderTest.pdb
