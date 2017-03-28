@@ -12,10 +12,7 @@ namespace WebCoffeeMachine.CoffeeMachineSimulator
         {
             // Configure Web API for self-host.
             HttpConfiguration config = new HttpConfiguration();
-            config.Routes.MapHttpRoute(
-                name: "Simulator",
-                routeTemplate: "{controller}"
-            );
+            config.MapHttpAttributeRoutes();
             config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             appBuilder.UseWebApi(config);
         }

@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Web.Http;
-using WebCoffeeMachine.Domain;
+using WebCoffeeMachine.Domain.ServerArduinoComm;
 using WebCoffeeMachine.Server.Domain;
 using WebCoffeeMachine.Server.Domain.ActionResults;
 
 namespace WebCoffeeMachine.Server.Controllers
 {
-    [RoutePrefix("api")]
     public class CoffeeMachineController : ApiController
     {
         [HttpPost]
         [Route("register")]
-        public IHttpActionResult Register([FromBody] RegistrationForms forms)
+        public IHttpActionResult Register([FromBody] RegistrationRequest request)
         {
-            if (!forms.IsValid())
-                return new RegistrationActionResult(Request, RegistrationResultStatusEnum.InvalidForms);
-
-            if (Cache.Singleton.CoffeeMachines.ContainsKey(forms.UniqueName))
+            if (Cache.Singleton.CoffeeMachines.ContainsKey(request.un))
                 return new RegistrationActionResult(Request, RegistrationResultStatusEnum.UniqueNameAlreadyTaken);
 
             int communicationPin;
-            Cache.Singleton.CoffeeMachines.Add(forms.UniqueName, new CoffeeMachineProxy(forms.Ip, forms.Port, out communicationPin));
+            Cache.Singleton.CoffeeMachines.Add(request.un, new CoffeeMachineProxy(request.i, request.p, out communicationPin));
 
             return new RegistrationActionResult(Request, RegistrationResultStatusEnum.Ok, communicationPin);
         }

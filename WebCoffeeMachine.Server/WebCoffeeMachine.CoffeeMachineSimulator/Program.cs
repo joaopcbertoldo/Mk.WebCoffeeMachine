@@ -1,26 +1,26 @@
 ﻿using Microsoft.Owin.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace WebCoffeeMachine.CoffeeMachineSimulator
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static Action<ConsoleKeyInfo> KeyEvent;
+
+        private static void Main(string[] args)
         {
-            SimulatorDashboard.TurnOn(Simulator.Singleton);
+
+            AppConfig.LoadAppConfig();
+            Dashboard.Load();
 
             var simulatorAddress = $"http://{AppConfig.SimulatorIp}:{AppConfig.SimulatorPort}";
             StartOptions options = new StartOptions();
             options.Urls.Add(simulatorAddress);
 
             using (WebApp.Start<Startup>(options)) {
-                SimulatorDashboard.Log($"Coffee machine simulator's api is up at <<{AppConfig.SimulatorIp}:{AppConfig.SimulatorPort}>>.");
-                while (true)
-                    Simulator.Singleton.HandleCommand(Console.ReadKey(intercept: true));
+                Dashboard.LogAsync($"Coffee machine simulator's api is up!");
+                Dashboard.StartCommandInterpreter();
             }
         }
     }

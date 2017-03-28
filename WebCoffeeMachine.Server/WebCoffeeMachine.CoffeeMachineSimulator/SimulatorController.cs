@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Web.Http;
 using WebCoffeeMachine.Domain;
 
@@ -6,13 +7,20 @@ namespace WebCoffeeMachine.CoffeeMachineSimulator
 {
     public class SimulatorController : ApiController
     {
+        [Route("")]
         public IHttpActionResult Get()
         {
-            return Ok(new { panel = Simulator.Singleton.ToPanel() });
+            FakeCoffeMachine.Singleton.LastReceivedRequest = DateTime.Now;
+            Dashboard.LogAsync("GET request received.");
+            return Ok(new { message = "one must complete this" });
         }
 
+        [Route("")]
         public IHttpActionResult Post()
         {
+            FakeCoffeMachine.Singleton.LastReceivedRequest = DateTime.Now;
+            Dashboard.LogAsync("POST request received.");
+
             var buffer = Request.Content.ReadAsByteArrayAsync().Result;
             var content = Encoding.Default.GetString(buffer);
             var subStr = content.Substring(content.IndexOf("\"o\"") + 3);
@@ -20,7 +28,7 @@ namespace WebCoffeeMachine.CoffeeMachineSimulator
 
             switch (operation) {
                 case 's':
-                    return Ok(Simulator.Singleton.ToPanel().PanelToString());
+                    return Ok(new { message = "one must complete this" });
 
                 default:
                     return BadRequest();

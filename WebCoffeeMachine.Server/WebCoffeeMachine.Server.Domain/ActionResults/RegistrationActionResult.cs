@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using WebCoffeeMachine.Domain.ServerArduinoComm;
 
 namespace WebCoffeeMachine.Server.Domain.ActionResults
 {
@@ -27,19 +28,19 @@ namespace WebCoffeeMachine.Server.Domain.ActionResults
             HttpResponseMessage response;
             switch (_resultStatus) {
                 case RegistrationResultStatusEnum.Ok:
-                    response = _request.CreateResponse(HttpStatusCode.OK, new { s = "o", p = _communicationPin.Value });
+                    response = _request.CreateResponse(HttpStatusCode.OK, new RegistrationResponse() { p = _communicationPin.Value });
                     break;
 
                 case RegistrationResultStatusEnum.UniqueNameAlreadyTaken:
-                    response = _request.CreateResponse(HttpStatusCode.Conflict, new { s = "t" });
+                    response = _request.CreateResponse(HttpStatusCode.Conflict);
                     break;
 
                 case RegistrationResultStatusEnum.InvalidForms:
-                    response = _request.CreateResponse(HttpStatusCode.BadRequest, new { s = "i" });
+                    response = _request.CreateResponse(HttpStatusCode.BadRequest);
                     break;
 
                 default:
-                    response = _request.CreateResponse(HttpStatusCode.InternalServerError, new { s = "u" });
+                    response = _request.CreateResponse(HttpStatusCode.InternalServerError);
                     break;
             }
             return Task.FromResult(response);

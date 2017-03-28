@@ -1,0 +1,91 @@
+﻿namespace WebCoffeeMachine.CoffeeMachineSimulator
+{
+    public static class Constants
+    {
+        // panel lines
+        public const string PANEL_LINE_IP = "ip",
+                            PANEL_LINE_PORT = "port",
+                            PANEL_LINE_SIMULATOR_UNIQUE_NAME = "simulatorUniqueName",
+                            PANEL_LINE_PIN = "pin",
+                            PANEL_LINE_IS_REGISTERED = "isConnected",
+                            PANEL_LINE_IS_MAKING_COFFEE = "isMakingCofee",
+                            PANEL_LINE_COFFEE = "coffee",
+                            PANEL_LINE_WATER = "water",
+                            PANEL_LINE_INGREDIENT = "ingredient",
+                            PANEL_LINE_RECIPE = "recipe",
+                            PANEL_LINE_LAST_EVENT = "lastEvent",
+                            PANEL_LINE_INGREDIENT_ADDITION_DELAY = "ingredientAdditionDelay",
+                            PANEL_LINE_INGREDIENT_KEYBOARD_INCREMENT = "ingredientKeyboardIncrement",
+                            PANEL_LINE_LAST_RECEIVED_REQUEST = "lastReceivedRequest",
+                            PANEL_LINE_REGISTRATION_REQUEST_TIMEOUT = "registrationRequestTimeout",
+                            PANEL_LINE_WAIT_AFTER_REGISTRATION_FAILED_ATTEMPT = "waitAfterRegistrationFailedAttempt",
+                            PANEL_LINE_WAIT_AFTER_REGISTRATION_SUCCESSFUL_ATTEMPT = "waitAfterRegistrationSuccessfulAttempt",
+                            PANEL_LINE_REGISTRATION_MANAGER_SLEEP = "registratioManagerSleep",
+                            PANEL_LINE_MAX_TIME_ELAPSED_BETWEEN_RECEIVED_REQUESTS = "maxTimeElapsedBetweenReceivedRequests",
+                            RECIPES_NEXT = "next",
+                            RECIPES_PREVIOUS = "previous",
+                            INGREDIENTS_WATER = "water",
+                            INGREDIENTS_COFFEE = "coffee";
+
+        // commands
+        public const string COMMAND_TAB = "tab",
+                            COMMAND_SHIFT_TAB = "shiftTab",
+                            COMMAND_ENTER = "enter",
+                            COMMAND_LEFT_ARROW = "leftArrow",
+                            COMMAND_RIGHT_ARROW = "rightArrow",
+                            COMMAND_UP_ARROW = "upArrow",
+                            COMMAND_DOWN_ARROW = "downArrow",
+                            COMMAND_F5 = "F5",
+                            COMMAND_F4 = "F4",
+                            COMMAND_LESS_THAN = "<",
+                            COMMAND_GREATER_THAN = ">",
+                            COMMAND_TAB_PANEL_LINE = "TAB : recipe.next",
+                            COMMAND_SHIFT_TAB_PANEL_LINE = "SHIFT + TAB : recipe.previous",
+                            COMMAND_ENTER_PANEL_LINE = "ENTER : make recipe",
+                            COMMAND_LEFT_ARROW_PANEL_LINE = "LEFT ARROW : ingredient.next",
+                            COMMAND_RIGHT_ARROW_PANEL_LINE = "RIGHT ARROW : ingredient.previous",
+                            COMMAND_UP_ARROW_PANEL_LINE = "UP ARROW : ingredient++",
+                            COMMAND_DOWN_ARROW_PANEL_LINE = "DOWN ARROW : ingredient--",
+                            COMMAND_F5_PANEL_LINE = "F5 : reload dashboard and app.config",
+                            COMMAND_F4_PANEL_LINE = "F4 : reload recipes",
+                            COMMAND_LESS_THAN_PANEL_LINE = "< : ingredient addition delay --",
+                            COMMAND_GREATER_THAN_PANEL_LINE = "> : ingredient addition delay ++";
+
+        // app.config
+        public const string APP_CONFIG_SIMULATOR_UNIQUE_NAME = "simulatorUniqueName",
+                            APP_CONFIG_SIMULATOR_IP = "simulatorIp",
+                            APP_CONFIG_SIMULATOR_PORT = "simulatorPort",
+                            APP_CONFIG_MAX_LOG_MESSAGES = "maxLogMessages",
+                            APP_CONFIG_STATUS_PANEL_WIDTH = "statusPanelWidth",
+                            APP_CONFIG_STATUS_PANEL_HIGHT = "statusPanelHight",
+                            APP_CONFIG_STATUS_PANEL_COLUMNS = "statusPanelColumns",
+                            APP_CONFIG_CONFIGS_PANEL_TITLE = "configsPanelTitle",
+                            APP_CONFIG_CONFIGS_PANEL_WIDTH = "configsPanelWidth",
+                            APP_CONFIG_CONFIGS_PANEL_HIGHT = "configsPanelHight",
+                            APP_CONFIG_CONFIGS_PANEL_COLUMNS = "configsPanelColumns",
+                            APP_CONFIG_COMMANDS_PANEL_TITLE = "commandsPanelTitle",
+                            APP_CONFIG_COMMANDS_PANEL_WIDTH = "commandsPanelWidth",
+                            APP_CONFIG_COMMANDS_PANEL_HIGHT = "commandsPanelHight",
+                            APP_CONFIG_COMMANDS_PANEL_COLUMNS = "commandsPanelColumns",
+                            APP_CONFIG_LOG_PANEL_TITLE = "logPanelTitle",
+                            APP_CONFIG_LOG_PANEL_WIDTH = "logPanelWidth",
+                            APP_CONFIG_LOG_PANEL_HIGHT = "logPanelHight",
+                            APP_CONFIG_LOG_PANEL_COLUMNS = "logPanelColumns",
+                            APP_CONFIG_INGREDIENT_KEY_BOARD_INCREMENT = "ingredientKeyboardIncrement",
+                            APP_CONFIG_INGREDIENT_ADDITION_DELAY_MS = "ingredientAdditionDelayMs",
+                            APP_CONFIG_FULL_WINDOW = "fullWindow",
+                            APP_CONFIG_SERVER_IP = "serverIp",
+                            APP_CONFIG_SERVER_PORT = "serverPort",
+                            APP_CONFIG_REGISTRATION_TIMEOUT = "registrationTimeout",
+                            APP_CONFIG_REGISTRATION_WAIT_AFTER_FAILED_ATTEMPT_MS = "registrationWaitAfterFailedAttemptMs",
+                            APP_CONFIG_REGISTRATION_WAIT_AFTER_SUCCESSFUL_ATTEMPT_MS = "registrationWaitAfterSuccessfulAttemptMs",
+                            APP_CONFIG_REGISTRATION_MANAGER_SLEEP_MS= "registrationManagerSleepMs",
+                            APP_CONFIG_MAX_TIME_ELAPSED_BETWEEN_RECEIVED_REQUESTS_MS = "maxTimeElapsedBetweenReceivedRequestsMs";
+
+        // others
+        public const int COFFEE_ITERATION_DECREMENT = 1,
+                         WATER_ITERATION_DECREMENT = 10,
+                         INGREDIENT_ADDITION_DELAY_INCREMENT = 100,
+                         VERTICAL_MARGIN_BETWEEN_PANELS = 1;
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Owin.Hosting;
 using System;
+using System.Threading;
 
 namespace WebCoffeeMachine.Server
 {
@@ -7,6 +8,7 @@ namespace WebCoffeeMachine.Server
     {
         private static void Main(string[] args)
         {
+            Thread.Sleep(8000);
             ServerConsole.StartConsole();
 
             var serverAddress = $"http://{AppConfig.ServerIp}:{AppConfig.ServerPort}";
