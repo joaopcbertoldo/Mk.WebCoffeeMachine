@@ -1,0 +1,3 @@
+﻿namespace Mkfeina.Domain.Panels
+{
+}

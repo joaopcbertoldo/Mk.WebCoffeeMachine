@@ -1,3 +1,0 @@
-﻿namespace WebCoffeeMachine.Domain.Panels
-{
-}
