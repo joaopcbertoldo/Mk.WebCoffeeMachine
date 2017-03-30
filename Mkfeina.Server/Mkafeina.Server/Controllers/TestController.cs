@@ -12,9 +12,9 @@ namespace Mkfeina.Server.Controllers
     {
         [Route("test")]
         public HttpResponseMessage Get() {
-            Console.Clear();
+            //Console.Clear();
             Console.WriteLine(Request.ToString());
-            return Request.CreateResponse(System.Net.HttpStatusCode.OK, new { message = "got your request" });
+            return Request.CreateResponse(System.Net.HttpStatusCode.OK, new { message = "Oi, quer café?" });
         }
     }
 }

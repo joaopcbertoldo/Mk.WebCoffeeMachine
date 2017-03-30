@@ -8,7 +8,7 @@ namespace Mkfeina.Server
     {
         private static void Main(string[] args)
         {
-            Thread.Sleep(8000);
+            //Thread.Sleep(8000);
             ServerConsole.StartConsole();
 
             var serverAddress = $"http://{AppConfig.ServerIp}:{AppConfig.ServerPort}";

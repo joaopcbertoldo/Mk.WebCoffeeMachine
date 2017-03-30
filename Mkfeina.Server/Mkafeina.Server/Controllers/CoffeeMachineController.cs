@@ -10,13 +10,17 @@ namespace Mkfeina.Server.Controllers
     {
         [HttpPost]
         [Route("register")]
-        public IHttpActionResult Register([FromBody] RegistrationRequest request)
+        public IHttpActionResult Register([FromBody] RegistrationRequest registration)
         {
-            if (Cache.Singleton.CoffeeMachines.ContainsKey(request.un))
+			//Console.Clear();
+			Console.WriteLine(Request.ToString());
+			Console.WriteLine(registration);
+
+            if (Cache.Singleton.CoffeeMachines.ContainsKey(registration.un))
                 return new RegistrationActionResult(Request, RegistrationResultStatusEnum.UniqueNameAlreadyTaken);
 
             int communicationPin;
-            Cache.Singleton.CoffeeMachines.Add(request.un, new CoffeeMachineProxy(request.i, request.p, out communicationPin));
+            Cache.Singleton.CoffeeMachines.Add(registration.un, new CoffeeMachineProxy(registration.i, registration.p, out communicationPin));
 
             return new RegistrationActionResult(Request, RegistrationResultStatusEnum.Ok, communicationPin);
         }

@@ -16,5 +16,10 @@
         /// Port
         /// </summary>
         public int p { get; set; }
-    }
+
+		public override string ToString()
+		{
+			return $"un : {un}, i : {i}, p : {p}";
+		}
+	}
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Mkfeina.Domain;
 using Mkfeina.Domain.Panels;
 using static Mkfeina.CoffeeMachineSimulator.Constants;
+using System.Threading;
 
 namespace Mkfeina.CoffeeMachineSimulator
 {
@@ -116,6 +117,8 @@ namespace Mkfeina.CoffeeMachineSimulator
 
         public static void LogAsync(string message)
         {
+			if (__logPanel == null)
+				Thread.Sleep(2000);
             __logPanel.AddRollingLineAsync(message.ToLogMessage(++__logCounter));
             __logPanel.RefreshFixedLineAsync(PANEL_LINE_LAST_EVENT, __panelLineBuilder.Build(PANEL_LINE_LAST_EVENT));
         }
