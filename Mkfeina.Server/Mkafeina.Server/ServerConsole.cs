@@ -89,9 +89,9 @@ namespace Mkfeina.Server
         {
             if (!__panels.ContainsKey(notifier.UniqueName))
                 __panels.Add(notifier.UniqueName, null);
-            __panels[notifier.UniqueName] = notifier.ToPanel();
-
-            RefreshServerConsole();
+			//__panels[notifier.UniqueName] = "change this";
+#warning mudar aqui
+			RefreshServerConsole();
         }
     }
 }

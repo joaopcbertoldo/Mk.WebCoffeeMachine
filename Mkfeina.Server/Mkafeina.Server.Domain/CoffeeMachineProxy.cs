@@ -1,108 +1,209 @@
-﻿using System;
+﻿using Mkfeina.Domain;
+using Mkfeina.Domain.ServerArduinoComm;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Mkfeina.Domain;
+using System.Linq;
 
 namespace Mkfeina.Server.Domain
 {
-    public class CoffeeMachineProxy : IObservable<CoffeeMachineProxy>
-    {
-        protected Dictionary<string, string> _recipes;
+	public class CoffeeMachineProxy : IObservable<CoffeeMachineProxy>
+	{
+		#region Static stuff
 
-        protected List<IObserver<CoffeeMachineProxy>> _observers;
+		private static Dictionary<string, CoffeeMachineProxy> _coffeeMachines = new Dictionary<string, CoffeeMachineProxy>();
 
-        private string _uniqueName;
+		public static bool IsRegistered(string mac) => _coffeeMachines.ContainsKey(mac);
 
-        public string UniqueName {
-            get { return _uniqueName; }
-            set { _uniqueName = value; }
-        }
+		public static CoffeeMachineProxy GetProxy(string mac)
+		{
+			if (_coffeeMachines.ContainsKey(mac))
+				return null;
+			return _coffeeMachines[mac];
+		}
 
-        private bool _isMakingCoffee;
+		public static RegistrationResponse HandleRegistrationAttempt(RegistrationRequest request)
+		{
+			lock (_coffeeMachines)
+			{
+				var mac = request.Mac;
+				if (_coffeeMachines.ContainsKey(mac))
+					return new RegistrationResponse()
+					{
+						ResponseCode = _coffeeMachines[mac].RegistrationIsAccepted ? (int)RegistrationResponseCodeEnum.AlreadyRegistered :
+																					 (int)RegistrationResponseCodeEnum.RegisteredButNotAccepted
+					};
 
-        public bool IsMakingCoffee {
-            get { return _isMakingCoffee; }
-            set { _isMakingCoffee = value; }
-        }
+				string trueUniqueName = request.UniqueName;
+				while (_coffeeMachines.Any(kv => kv.Value.UniqueName == request.UniqueName))
+					trueUniqueName = trueUniqueName.GenerateNameVersion();
 
-        private float _coffeeLevel; // voltage
+				var newProxy = new CoffeeMachineProxy()
+				{
+					Mac = request.Mac,
+					UniqueName = trueUniqueName,
+					CoffeeEmptyOffset = request.CoffeeEmptyOffset,
+					CoffeeFullOffset = request.CoffeeFullOffset,
+					WaterEmptyOffset = request.WaterEmptyOffset,
+					WaterFullOffset = request.WaterFullOffset,
+					MilkEmptyOffset = request.MilkEmptyOffset,
+					MilkFullOffset = request.MilkFullOffset,
+					SugarEmptyOffset = request.SugarEmptyOffset,
+					SugarFullOffset = request.SugarFullOffset,
+					CoffeeLevel = 0,
+					WaterLevel = 0,
+					MilkLevel = 0,
+					SugarLevel = 0,
+					RegistrationIsAccepted = false,
+					IsMakingCoffee = false,
+					IsEnabled = false
+				};
 
-        public int CoffeeLevel { // %
-            get {
-                // convert voltage to %
-                return (int)_coffeeLevel;
-            }
-            set {
-                _coffeeLevel = value;
-            }
-        }
+				_coffeeMachines.Add(mac, newProxy);
 
-        private float _waterLevel; // voltage
+				return new RegistrationResponse()
+				{
+					ResponseCode = (int)ResponseCodeEnum.OK,
+					TrueUniqueName = trueUniqueName
+				};
+			}
+		}
 
-        public int WaterLevel { // %
-            get {
-                // convert voltage to %
-                return (int)_waterLevel;
-            }
-            set {
-                _waterLevel = value;
-            }
-        }
+		public static RegistrationResponse HandleRegistrationAcceptance(RegistrationRequest request)
+		{
+			lock (_coffeeMachines)
+			{
+				if (_coffeeMachines.ContainsKey(request.Mac) && !_coffeeMachines[request.Mac].RegistrationIsAccepted)
+					return new RegistrationResponse()
+					{
+						ResponseCode = (int)ResponseCodeEnum.OK
+					};
+				else if (_coffeeMachines.ContainsKey(request.Mac) && _coffeeMachines[request.Mac].RegistrationIsAccepted)
+					return new RegistrationResponse()
+					{
+						ResponseCode = (int)RegistrationResponseCodeEnum.AlreadyRegistered
+					};
+				else
+					return new RegistrationResponse()
+					{
+						ResponseCode = (int)ResponseCodeEnum.InvalidRequest
+					};
+			}
+		}
 
-        private bool _isConnected;
+		#endregion Static stuff
 
-        public bool IsConnected {
-            get { return _isConnected; }
-            set { _isConnected = value; }
-        }
+		protected Dictionary<string, string> _recipes;
 
-        public string Ip { get; private set; }
+		protected List<IObserver<CoffeeMachineProxy>> _observers;
 
-        public int Port { get; private set; }
+		private string _uniqueName;
 
-        protected int _communicationPin;
+		public string UniqueName {
+			get { return _uniqueName; }
+			set { _uniqueName = value; }
+		}
 
-        public MakeCoffeeResponseEnum MakeCoffee(string recipe)
-        {
-            return MakeCoffeeResponseEnum.Undefined;
-        }
+		private bool _isMakingCoffee;
 
-        public CoffeeMachineProxy(string ip, int port, out int communicationPin)
-        {
-            Ip = ip;
-            Port = port;
-            _recipes = new Dictionary<string, string>();
-            var random = new Random();
-            communicationPin = random.Next();
-            _communicationPin = communicationPin;
-        }
+		public bool IsMakingCoffee {
+			get { return _isMakingCoffee; }
+			set { _isMakingCoffee = value; }
+		}
 
-        public List<string> ToPanel()
-            => new List<string>() {
-                $"Coffee Machine : {UniqueName}",
-                $"ADDRESS : {Ip} | Port : {Port}",
-                (IsConnected ? "Connection OK" : "Disconnected") + " | " + (IsMakingCoffee ? "Making some coffee" : "Waiting"),
-                $"Coffee : {CoffeeLevel:00}%",
-                $"Water : {WaterLevel:00}%"
-            };
+		private float _coffeeLevel; // voltage
 
-        public void RegisterObserver(IObserver<CoffeeMachineProxy> newObserver)
-        {
-            if (newObserver != null)
-                _observers.Add(newObserver);
-        }
+		public int CoffeeLevel { // %
+			get {
+				// convert voltage to %
+				return (int)_coffeeLevel;
+			}
+			set {
+				_coffeeLevel = value;
+			}
+		}
 
-        public void NotifyObservers()
-        {
-            foreach (var observer in _observers)
-                observer.Notify(this);
-        }
+		private float _waterLevel; // voltage
 
-        public void TurnOnConnection()
-        {
-            Task.Factory.StartNew(() => {
-                // communication routine
-            });
-        }
-    }
+		public int WaterLevel { // %
+			get {
+				// convert voltage to %
+				return (int)_waterLevel;
+			}
+			set {
+				_waterLevel = value;
+			}
+		}
+
+		private float _milkLevel; // voltage
+
+		public int MilkLevel { // %
+			get {
+				// convert voltage to %
+				return (int)_milkLevel;
+			}
+			set {
+				_milkLevel = value;
+			}
+		}
+
+		private float _sugarLevel; // voltage
+
+		public int SugarLevel { // %
+			get {
+				// convert voltage to %
+				return (int)_sugarLevel;
+			}
+			set {
+				_sugarLevel = value;
+			}
+		}
+
+		private bool _registrationIsAccepted;
+
+		public bool RegistrationIsAccepted {
+			get { return _registrationIsAccepted; }
+			set { _registrationIsAccepted = value; }
+		}
+
+		private bool _isEnabled;
+
+		public bool IsEnabled {
+			get { return _isEnabled; }
+			set { _isEnabled = value; }
+		}
+
+		public string Mac { get; set; }
+
+		public int CoffeeEmptyOffset { get; set; }
+
+		public int CoffeeFullOffset { get; set; }
+
+		public int WaterEmptyOffset { get; set; }
+
+		public int WaterFullOffset { get; set; }
+
+		public int MilkEmptyOffset { get; set; }
+
+		public int MilkFullOffset { get; set; }
+
+		public int SugarEmptyOffset { get; set; }
+
+		public int SugarFullOffset { get; set; }
+
+		public MakeCoffeeResponseEnum MakeCoffee(string recipe)
+		{
+			return MakeCoffeeResponseEnum.Undefined;
+		}
+
+		public void RegisterObserver(IObserver<CoffeeMachineProxy> newObserver)
+		{
+			if (newObserver != null)
+				_observers.Add(newObserver);
+		}
+
+		public void NotifyObservers()
+		{
+			foreach (var observer in _observers)
+				observer.Notify(this);
+		}
+	}
 }

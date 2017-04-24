@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Domain
+﻿namespace Mkfeina.Domain.Panels
 {
     public abstract class PanelLineBuilder
     {

@@ -1,217 +1,263 @@
-﻿using System;
+﻿using Microsoft.Practices.Unity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static Mkfeina.Domain.Extensions;
+using static Mkfeina.Domain.Extentions;
 using static Mkfeina.Domain.Panels.Constants;
 
 namespace Mkfeina.Domain.Panels
 {
-    public class Panel
-    {
-        public static PanelFactory Factory = new PanelFactory();
+	public class Panel
+	{
+		protected static PanelLineBuilder __lineBuilder;
 
-        protected static object __consoleWriteSyncObj = new object();
+		protected static PanelLineBuilder LineBuilder {
+			get {
+				if (__lineBuilder == null)
+					__lineBuilder = AppDomain.CurrentDomain.UnityContainer().Resolve<PanelLineBuilder>();
+				return __lineBuilder;
+			}
+		}
 
-        protected Dictionary<string, string> _fixedLines = new Dictionary<string, string>();
+		public static PanelFactory Factory = new PanelFactory();
 
-        protected LinkedList<string> _rollingLines = new LinkedList<string>();
+		protected static object __consoleWriteSyncObj = new object();
 
-        protected readonly int _columnWidth;
+		protected Dictionary<string, string> _fixedLines = new Dictionary<string, string>();
 
-        public string Title { get; private set; }
+		protected LinkedList<string> _rollingLines = new LinkedList<string>();
 
-        public int[] Origin { get; private set; }
+		protected int _columnWidth;
 
-        public int[] Size { get; private set; }
+		public string Title { get; private set; }
 
-        /// <summary>
-        /// Number of colums
-        /// </summary>
-        public int Columns { get; private set; }
+		public int[] Origin { get; private set; }
 
-        public int VisibleLines { get => Columns * (Size[SIZE_HEIGHT] - 1); }
+		public int[] Size { get; private set; }
 
-        public int VisibleLinesPerColumn { get => VisibleLines / Columns; }
+		/// <summary>
+		/// Number of colums
+		/// </summary>
+		public int Columns { get; private set; }
 
-        /// <summary>
-        /// Number of lines
-        /// </summary>
-        public int Lines { get => FixedLines + RollingLines + EMPTY_LINES_BETWEEN_ROLLING_AND_FIXED; }
+		public int VisibleLines { get => Columns * (Size[SIZE_HEIGHT] - 1); }
 
-        /// <summary>
-        /// Number of fixed lines
-        /// </summary>
-        public int FixedLines { get => _fixedLines.Count; }
+		public int VisibleLinesPerColumn { get => VisibleLines / Columns; }
 
-        /// <summary>
-        /// Number of rolling lines
-        /// </summary>
-        public int RollingLines { get => _rollingLines.Count; }
+		/// <summary>
+		/// Number of lines
+		/// </summary>
+		public int Lines { get => FixedLines + RollingLines + EMPTY_LINES_BETWEEN_ROLLING_AND_FIXED; }
 
-        internal Panel(PanelConfig config)
-        {
-            Title = config.Title;
-            Origin = new int[] { config.OriginLeft, config.OriginTop };
-            Size = new int[] { config.Width, config.Hight };
-            Columns = config.Columns;
-            _columnWidth = Size[SIZE_WIDTH] / Columns - (Columns - 1) * MARGIN_BETWEEN_COLUMNS;
-            // write the title line
-            lock (__consoleWriteSyncObj) {
-                Console.SetCursorPosition(Origin[POSITION_LEFT], Origin[POSITION_TOP]);
-                Console.WriteLine(Title.AdjustLength(Console.WindowWidth, TITLE_FULFILLER, FulfillStringMode.Centered));
-                Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
-            }
-        }
+		/// <summary>
+		/// Number of fixed lines
+		/// </summary>
+		public int FixedLines { get => _fixedLines.Count; }
 
-        public void AddFixedLineAsync(string name, string content = null)
-        {
-            Task.Factory.StartNew(() => {
-                if (content == null)
-                    content = $"{name.ToUpper()}...";
+		/// <summary>
+		/// Number of rolling lines
+		/// </summary>
+		public int RollingLines { get => _rollingLines.Count; }
 
-                lock (_fixedLines) {
-                    _fixedLines.Add(name, content);
-                }
+		internal Panel(PanelConfig config)
+		{
+			Title = config.Title;
+			Origin = new int[] { config.OriginLeft, config.OriginTop };
+			Size = new int[] { config.Width, config.Hight };
+			Columns = config.Columns;
+			_columnWidth = Size[SIZE_WIDTH] / Columns - (Columns - 1) * MARGIN_BETWEEN_COLUMNS;
+			PrintTitle();
+		}
 
+		private void PrintTitle()
+		{
+			// write the title line
+			lock (__consoleWriteSyncObj)
+			{
+				Console.SetCursorPosition(Origin[POSITION_LEFT], Origin[POSITION_TOP]);
+				Console.WriteLine(Title.AdjustLength(Console.WindowWidth, TITLE_FULFILLER, FulfillStringMode.Centered));
+				Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
+			}
+		}
+
+		public void UpdateConfig(PanelConfig config)
+		{
+			Title = config.Title;
+			Origin = new int[] { config.OriginLeft, config.OriginTop };
+			Size = new int[] { config.Width, config.Hight };
+			Columns = config.Columns;
+			_columnWidth = Size[SIZE_WIDTH] / Columns - (Columns - 1) * MARGIN_BETWEEN_COLUMNS;
+			PrintTitle();
+			ReprintEverythingAsync();
+		}
+
+		public void AddFixedLineAsync(string lineName)
+		{
+			Task.Factory.StartNew(() =>
+			{
+				lock (_fixedLines)
+					_fixedLines.Add(lineName, LineBuilder.Build(lineName));
 #warning manter isto ???????????????????????????????????????????????????????????????????????????????????????????????????????????
-                ReprintEverythingAsync();
-            });
-        }
+				ReprintEverythingAsync();
+			});
+		}
 
-        public void AddManyFixedLinesAsync(IEnumerable<KeyValuePair<string, string>> lines)
-        {
-            Task.Factory.StartNew(() => {
-                lock (_fixedLines) {
-                    foreach (var line in lines) {
-                        var content = line.Value;
-                        if (content == null)
-                            content = $"{line.Key.ToUpper()}...";
-                        _fixedLines.Add(line.Key, content);
-                    }
-                }
+		public void AddManyFixedLinesAsync(IEnumerable<string> linesNames, bool wait)
+		{
+			var task = Task.Factory.StartNew(() =>
+			{
+				lock (_fixedLines)
+				{
+					foreach (var name in linesNames)
+						_fixedLines.Add(name, LineBuilder.Build(name));
+				}
 #warning manter isto ???????????????????????????????????????????????????????????????????????????????????????????????????????????
-                ReprintEverythingAsync();
-            });
-        }
+				ReprintEverythingAsync();
+			});
 
-        public void RefreshFixedLineAsync(string name, string content)
-        {
-            Task.Factory.StartNew(() => {
-                lock (_fixedLines) {
-                    _fixedLines[name] = content.AdjustLength(_columnWidth);
-                    var position = GetCursorPositionForFixedLine(name);
-                    if (position == NOT_VISIBLE_LINE)
-                        return;
-                    lock (__consoleWriteSyncObj) {
-                        Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
-                        Console.Write(_fixedLines[name]);
-                        Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
-                    }
-                }
-            });
-        }
+			if (wait)
+			{
+				if (task.Status == TaskStatus.Running)
+					task.Wait();
+			}
+		}
 
-        protected void ReprintAllFixedLinesAsync()
-        {
-            Task.Factory.StartNew(() => {
-                lock (_fixedLines) {
-                    foreach (var line in _fixedLines) {
-                        var position = GetCursorPositionForFixedLine(line.Key);
-                        if (position == NOT_VISIBLE_LINE)
-                            break;
-                        lock (__consoleWriteSyncObj) {
-                            Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
-                            Console.Write(_fixedLines[line.Key]);
-                            Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
-                        }
-                    }
-                }
-            });
-        }
+		public void RefreshFixedLineAsync(string name, string content)
+		{
+			Task.Factory.StartNew(() =>
+			{
+				lock (_fixedLines)
+				{
+					_fixedLines[name] = content.AdjustLength(_columnWidth);
+					var position = GetCursorPositionForFixedLine(name);
+					if (position == NOT_VISIBLE_LINE)
+						return;
+					lock (__consoleWriteSyncObj)
+					{
+						Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
+						Console.Write(_fixedLines[name]);
+						Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
+					}
+				}
+			});
+		}
 
-        public void AddRollingLineAsync(string content)
-        {
-            Task.Factory.StartNew(() => {
-                if (content == null)
-                    return;
+		public void UpdateEventHandler(string updatedLine)
+		{
+			if (_fixedLines.ContainsKey(updatedLine))
+				RefreshFixedLineAsync(updatedLine, LineBuilder.Build(updatedLine));
+		}
 
-                lock (_rollingLines) {
-                    _rollingLines.AddFirst(content.AdjustLength(_columnWidth));
-                }
-                ReprintAllRollingLinesAsync();
-            });
-        }
+		protected void ReprintAllFixedLinesAsync()
+		{
+			Task.Factory.StartNew(() =>
+			{
+				lock (_fixedLines)
+				{
+					foreach (var line in _fixedLines)
+					{
+						var position = GetCursorPositionForFixedLine(line.Key);
+						if (position == NOT_VISIBLE_LINE)
+							break;
+						lock (__consoleWriteSyncObj)
+						{
+							Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
+							Console.Write(_fixedLines[line.Key]);
+							Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
+						}
+					}
+				}
+			});
+		}
 
-        protected void ReprintAllRollingLinesAsync()
-        {
-            Task.Factory.StartNew(() => {
-                lock (_rollingLines) {
-                    for (var rollingLineIndex = 0; rollingLineIndex < _rollingLines.Count; rollingLineIndex++) {
-                        var position = GetCursorPositionForRollingLine(rollingLineIndex);
-                        if (position == NOT_VISIBLE_LINE) {
-                            // delete all those that are not visible
-                            var firstNotVisibleIndex = rollingLineIndex;
-                            string firstNotVisible;
-                            do {
-                                _rollingLines.RemoveLast();
-                                firstNotVisible = _rollingLines.ElementAtOrDefault(firstNotVisibleIndex);
-                            } while (firstNotVisible != null);
-                        } else {
-                            lock (__consoleWriteSyncObj) {
-                                Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
-                                Console.Write(_rollingLines.ElementAt(rollingLineIndex));
-                                Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
-                            }
-                        }
-                    }
-                }
-            });
-        }
+		public void AddRollingLineAsync(string content)
+		{
+			Task.Factory.StartNew(() =>
+			{
+				if (content == null)
+					return;
+
+				lock (_rollingLines)
+				{
+					_rollingLines.AddFirst(content.AdjustLength(_columnWidth));
+				}
+				ReprintAllRollingLinesAsync();
+			});
+		}
+
+		protected void ReprintAllRollingLinesAsync()
+		{
+			Task.Factory.StartNew(() =>
+			{
+				lock (_rollingLines)
+				{
+					for (var rollingLineIndex = 0; rollingLineIndex < _rollingLines.Count; rollingLineIndex++)
+					{
+						var position = GetCursorPositionForRollingLine(rollingLineIndex);
+						if (position == NOT_VISIBLE_LINE)
+						{
+							// delete all those that are not visible
+							var firstNotVisibleIndex = rollingLineIndex;
+							string firstNotVisible;
+							do
+							{
+								_rollingLines.RemoveLast();
+								firstNotVisible = _rollingLines.ElementAtOrDefault(firstNotVisibleIndex);
+							} while (firstNotVisible != null);
+						}
+						else
+						{
+							lock (__consoleWriteSyncObj)
+							{
+								Console.SetCursorPosition(position[POSITION_LEFT], position[POSITION_TOP]);
+								Console.Write(_rollingLines.ElementAt(rollingLineIndex));
+								Console.SetCursorPosition(CURSOR_ORIGIN[POSITION_LEFT], CURSOR_ORIGIN[POSITION_TOP]);
+							}
+						}
+					}
+				}
+			});
+		}
 
 #warning keep this public ?????????????????????????????????
 
-        public void ReprintEverythingAsync()
-        {
-            ReprintAllFixedLinesAsync();
-            ReprintAllRollingLinesAsync();
-        }
+		public void ReprintEverythingAsync()
+		{
+			ReprintAllFixedLinesAsync();
+			ReprintAllRollingLinesAsync();
+		}
 
-        protected int[] GetCursorPositionForFixedLine(string name)
-            => GetCursorPosition(_fixedLines.Keys.ToList().IndexOf(name));
+		protected int[] GetCursorPositionForFixedLine(string name)
+			=> GetCursorPosition(_fixedLines.Keys.ToList().IndexOf(name));
 
-        protected int[] GetCursorPositionForRollingLine(int rollingLineRelativeIndex)
-            => GetCursorPosition(FixedLines + rollingLineRelativeIndex + EMPTY_LINES_BETWEEN_ROLLING_AND_FIXED);
+		protected int[] GetCursorPositionForRollingLine(int rollingLineRelativeIndex)
+			=> GetCursorPosition(FixedLines + rollingLineRelativeIndex + EMPTY_LINES_BETWEEN_ROLLING_AND_FIXED);
 
-        protected int[] GetCursorPosition(int absoluteLineIndex)
-        {
-            if (absoluteLineIndex >= VisibleLines)
-                return NOT_VISIBLE_LINE;
-            var column = absoluteLineIndex / VisibleLinesPerColumn;
-            var lineInColumn = absoluteLineIndex % VisibleLinesPerColumn;
-            var left = Origin[POSITION_LEFT] + column * (_columnWidth + MARGIN_BETWEEN_COLUMNS);
-            var top = Origin[POSITION_TOP] + 1 + lineInColumn; // the "1" is to avoid the title line
-            return new int[] { left, top };
-        }
+		protected int[] GetCursorPosition(int absoluteLineIndex)
+		{
+			if (absoluteLineIndex >= VisibleLines)
+				return NOT_VISIBLE_LINE;
+			var column = absoluteLineIndex / VisibleLinesPerColumn;
+			var lineInColumn = absoluteLineIndex % VisibleLinesPerColumn;
+			var left = Origin[POSITION_LEFT] + column * (_columnWidth + MARGIN_BETWEEN_COLUMNS);
+			var top = Origin[POSITION_TOP] + 1 + lineInColumn; // the "1" is to avoid the title line
+			return new int[] { left, top };
+		}
 
-        public void Unregister()
-            => ConsoleSpaceManager.UnregisterSpaceUsage(Origin[POSITION_LEFT], Origin[POSITION_TOP]);
+		public void Unregister()
+			=> ConsoleSpaceManager.UnregisterSpaceUsage(Origin[POSITION_LEFT], Origin[POSITION_TOP]);
 
-        public void CleanUp()
-        {
-            lock (__consoleWriteSyncObj) {
-                for (var top = Origin[POSITION_TOP]; top < Origin[POSITION_TOP] + Size[SIZE_HEIGHT]; top++) {
-                    Console.SetCursorPosition(Origin[POSITION_LEFT], top);
-                    Console.Write(" ".AdjustLength(Size[SIZE_WIDTH]));
-                }
-            }
-        }
-
-        public Panel TransferLines(Panel destination)
-        {
-            destination._rollingLines = _rollingLines;
-            destination._fixedLines = _fixedLines;
-            return destination;
-        }
-    }
+		public void CleanUp()
+		{
+			lock (__consoleWriteSyncObj)
+			{
+				for (var top = Origin[POSITION_TOP]; top < Origin[POSITION_TOP] + Size[SIZE_HEIGHT]; top++)
+				{
+					Console.SetCursorPosition(Origin[POSITION_LEFT], top);
+					Console.Write(" ".AdjustLength(Size[SIZE_WIDTH]));
+				}
+			}
+		}
+	}
 }

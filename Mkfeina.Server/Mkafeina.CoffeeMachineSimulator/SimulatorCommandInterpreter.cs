@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Mkfeina.Domain;
-using static Mkfeina.CoffeeMachineSimulator.Constants;
+using static Mkfeina.Simulator.Constants;
+using Mkfeina.CoffeeMachineSimulator;
 
-namespace Mkfeina.CoffeeMachineSimulator
+namespace Mkfeina.Simulator
 {
     public class SimulatorCommandInterpreter : CommandInterpreter
     {
@@ -13,52 +14,60 @@ namespace Mkfeina.CoffeeMachineSimulator
                 switch (key.Key) {
                     case ConsoleKey.Tab:
                         if ((key.Modifiers & ConsoleModifiers.Shift) != 0)
-                            FakeCoffeMachine.Singleton.SelectedRecipe = RECIPES_PREVIOUS;
+                            CookBook.Singleton.PreviousRecipe();
                         else
-                            FakeCoffeMachine.Singleton.SelectedRecipe = RECIPES_NEXT;
+							CookBook.Singleton.NextRecipe();
                         break;
 
                     case ConsoleKey.Enter:
-                        Dashboard.LogAsync($"Keyboard <<{FakeCoffeMachine.Singleton.SelectedRecipe}>> order.");
-                        FakeCoffeMachine.Singleton.MakeSelectedCoffee();
+                        SimulatorDashboard.Singleton.LogAsync($"Keyboard <<{CookBook.Singleton.SelectedRecipeName()}>> order.");
+                        FakeCoffeMachine.Singleton.MakeCoffee(CookBook.Singleton.SelectedRecipe());
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        FakeCoffeMachine.Singleton.SelectedIngredient = RECIPES_PREVIOUS;
+						FakeCoffeMachine.Singleton.PreviousIngredient();
                         break;
 
                     case ConsoleKey.RightArrow:
-                        FakeCoffeMachine.Singleton.SelectedIngredient = RECIPES_NEXT;
+						FakeCoffeMachine.Singleton.NextIngredient();
                         break;
 
                     case ConsoleKey.UpArrow:
-                        FakeCoffeMachine.Singleton.IncrementSelectedIngredient(AppConfig.IngredientKeyboardIncrement);
+                        FakeCoffeMachine.Singleton.IncrementSelectedIngredient();
                         break;
 
                     case ConsoleKey.DownArrow:
-                        FakeCoffeMachine.Singleton.IncrementSelectedIngredient(-1 * AppConfig.IngredientKeyboardIncrement);
+                        FakeCoffeMachine.Singleton.IncrementSelectedIngredient(negative:true);
                         break;
 
                     case ConsoleKey.F5:
-                        AppConfig.LoadAppConfig();
-                        Dashboard.ReloadPanels();
+                        SimulatorAppConfig.Singleton.ReloadConfigs();
+                        SimulatorDashboard.Singleton.ReloadAllPanelsAsync(SimulatorAppConfig.Singleton.PanelsConfigs);
                         break;
 
                     case ConsoleKey.F4:
-                        FakeCoffeMachine.Singleton.LoadRecipesAsync();
+						CookBook.Singleton.LoadRecipes();
                         break;
 
-                    case ConsoleKey.OemPeriod:
+                    case ConsoleKey.OemPeriod: // >
                         if ((key.Modifiers & ConsoleModifiers.Shift) != 0)
-                            AppConfig.IngredientAdditionDelayMs = AppConfig.IngredientAdditionDelayMs + INGREDIENT_ADDITION_DELAY_INCREMENT;
+                            SimulatorAppConfig.Singleton.IngredientAdditionDelayMs += INGREDIENT_ADDITION_DELAY_INCREMENT;
 
                         break;
 
-                    case ConsoleKey.OemComma:
+                    case ConsoleKey.OemComma: // <
                         if ((key.Modifiers & ConsoleModifiers.Shift) != 0) {
-                            AppConfig.IngredientAdditionDelayMs = AppConfig.IngredientAdditionDelayMs - INGREDIENT_ADDITION_DELAY_INCREMENT;
+                            SimulatorAppConfig.Singleton.IngredientAdditionDelayMs -= INGREDIENT_ADDITION_DELAY_INCREMENT;
                         }
                         break;
+
+					case ConsoleKey.I:
+						FakeCoffeMachine.Singleton.TurnOn();
+						break;
+
+					case ConsoleKey.O:
+						FakeCoffeMachine.Singleton.TurnOff();
+						break;
 
                     default:
                         return;

@@ -70,7 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.cs" />
-    <Compile Include="Cache.cs" />
+    <Compile Include="Attributes\EncryptionAttribute.cs" />
     <Compile Include="Controllers\CoffeeMachineController.cs" />
     <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Program.cs" />

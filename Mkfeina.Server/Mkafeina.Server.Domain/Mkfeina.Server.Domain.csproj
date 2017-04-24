@@ -53,15 +53,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionResults\RegistrationActionResult.cs" />
-    <Compile Include="ActionResults\RegistrationResultStatusEnum.cs" />
     <Compile Include="CoffeeMachineProxy.cs" />
     <Compile Include="IObservable.cs" />
     <Compile Include="IObserver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="ActionResults\app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

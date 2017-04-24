@@ -1,25 +1,36 @@
-﻿namespace Mkfeina.Domain.ServerArduinoComm
+﻿using static Mkfeina.Domain.ServerArduinoComm.Constants;
+
+namespace Mkfeina.Domain.ServerArduinoComm
 {
-    public class RegistrationRequest
-    {
-        /// <summary>
-        /// Unique Name
-        /// </summary>
-        public string un { get; set; }
+	public enum RegistrationMessageEnum
+	{
+		Undefined = 0,
+		AttemptRegistration = 100,
+		RegistrationAcceptance = 101,
+		Offsets = 200,
+		Unregister = 300
+	}
 
-        /// <summary>
-        /// Ip
-        /// </summary>
-        public string i { get; set; }
+	public class RegistrationRequest : Request
+	{
+		public int RegistrationMessage { get; set; }
 
-        /// <summary>
-        /// Port
-        /// </summary>
-        public int p { get; set; }
+		public string UniqueName { get; set; }
 
-		public override string ToString()
-		{
-			return $"un : {un}, i : {i}, p : {p}";
-		}
+		public int CoffeeEmptyOffset { get; set; } = NOT_AVAILABLE;
+
+		public int CoffeeFullOffset { get; set; } = NOT_AVAILABLE;
+
+		public int WaterEmptyOffset { get; set; } = NOT_AVAILABLE;
+
+		public int WaterFullOffset { get; set; } = NOT_AVAILABLE;
+
+		public int MilkEmptyOffset { get; set; } = NOT_AVAILABLE;
+
+		public int MilkFullOffset { get; set; } = NOT_AVAILABLE;
+
+		public int SugarEmptyOffset { get; set; } = NOT_AVAILABLE;
+
+		public int SugarFullOffset { get; set; } = NOT_AVAILABLE;
 	}
 }

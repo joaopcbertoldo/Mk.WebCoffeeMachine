@@ -1,0 +1,7 @@
+se o esp8266 ficar travado com o led da gpio0 meio acessa (bootload mode)
+tem que conectar uma resistencia em 
+
+I'm stuck in bootloader mode and can't upload
+You say your led is stuck on dim and you get an error trying to upload? And you're sure your serial cable is connected and working correctly? Well, here's a potential fix: Connect the GPIO0 pin to GND through a 220 ohm resistor. Leave it connected while you upload.  You may have to try it a couple of times, but it should eventually upload and get the HUZZAH unstuck from bootload mode! You can then remove the resistor connection, and your HUZZAH will be happy ever after!
+(Note: you may also have to tie RST and EN (CH_PD) together to get this to work.  Remove the connection once you have the module programmed).
+Thanks to forum user misslevania for the tip!

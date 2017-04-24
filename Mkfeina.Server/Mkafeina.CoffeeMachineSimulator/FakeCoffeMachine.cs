@@ -1,341 +1,749 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Mkfeina.CoffeeMachineSimulator;
+using Mkfeina.Domain;
+using Mkfeina.Domain.ServerArduinoComm;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Mkfeina.Domain;
-using Mkfeina.Domain.ServerArduinoComm;
-using static Mkfeina.CoffeeMachineSimulator.Constants;
 using static Mkfeina.Domain.ServerArduinoComm.Constants;
+using static Mkfeina.Simulator.Constants;
 
-namespace Mkfeina.CoffeeMachineSimulator
+namespace Mkfeina.Simulator
 {
-    public class FakeCoffeMachine
-    {
-        private static object _singletonSync = new object();
+	public class FakeCoffeMachine
+	{
+		//private byte[] KEY = new byte[] { 42, 33, 13 };
+		private byte[] KEY = new byte[] { 1, 2, 3 };
 
-        private static FakeCoffeMachine __singleton;
-#warning make ingredients get from app config
-        private readonly LinkedList<string> _ingredients;
+#warning tranformar os dois em configs
+		private bool ENCRYPTION_ENABLE = true;
 
-        private LinkedList<string> _recipes;
+		#region Singleton Stuff
 
-        private bool _isConnected;
+		private static object _singletonSync = new object();
 
-        private int _communicationPin;
+		private static FakeCoffeMachine __singleton;
 
-        private DateTime _lastReceivedRequest;
+		public static FakeCoffeMachine Singleton {
+			get {
+				if (__singleton == null)
+				{
+					lock (_singletonSync)
+					{
+						if (__singleton == null)
+							__singleton = new FakeCoffeMachine();
+					}
+				}
+				return __singleton;
+			}
+		}
 
-        private bool _isMakingCoffee;
+		private FakeCoffeMachine()
+		{
+			_waterMl = 1000;
+			_coffeeLevel = 100;
+			_isRegistered = false;
+			_isMakingCoffee = false;
+			_ingredients = new LinkedList<string>(new string[] { INGREDIENTS_COFFEE, INGREDIENTS_WATER });
+			_selectedIngredient = _ingredients.First;
+			_isEnabled = true;
+		}
 
-        private int _coffeeLevel;
+		#endregion Singleton Stuff
 
-        private int _waterMl;
+		#region Ingredient Selection
 
-        private LinkedListNode<string> _selectedRecipe;
+		private readonly LinkedList<string> _ingredients;
+		private LinkedListNode<string> _selectedIngredient;
 
-        private LinkedListNode<string> _selectedIngredient;
+		public void NextIngredient()
+		{
+			_selectedIngredient = _selectedIngredient.NextOrFirst();
+			StatusChangeEvent(PANEL_LINE_SELECTED_INGREDIENT);
+		}
 
-        private int _connectionAttemptCounter = 0;
+		public void PreviousIngredient()
+		{
+			_selectedIngredient = _selectedIngredient.PreviousOrLast();
+			StatusChangeEvent(PANEL_LINE_SELECTED_INGREDIENT);
+		}
 
-        private object _connectionSync = new object();
+		public string SelectedIngredient { get => _selectedIngredient.Value; }
 
-        public event Action<string> StatusChangeEvent;
+		public void IncrementSelectedIngredient(bool negative = false)
+		{
+			var increment = negative ? -1 * INGREDIENT_KEY_BOARD_INCREMENT : INGREDIENT_KEY_BOARD_INCREMENT;
+			switch (_selectedIngredient.Value)
+			{
+				case INGREDIENTS_COFFEE:
+					CoffeeLevel += increment;
+					break;
 
-        public static FakeCoffeMachine Singleton {
-            get {
-                if (__singleton == null) {
-                    lock (_singletonSync) {
-                        if (__singleton == null)
-                            __singleton = new FakeCoffeMachine();
-                    }
-                }
-                return __singleton;
-            }
-        }
+				case INGREDIENTS_WATER:
+					WaterMl += increment;
+					break;
 
-        public bool IsRegistered {
-            get { return _isConnected; }
-            set {
-                _isConnected = value;
-                StatusChangeEvent(PANEL_LINE_IS_REGISTERED);
-            }
-        }
+				default:
+					return;
+			}
+		}
 
-        public int Pin {
-            get { return _communicationPin; }
-            set {
-                _communicationPin = value;
-                StatusChangeEvent(PANEL_LINE_PIN);
-            }
-        }
+		#endregion Ingredient Selection
 
-        public DateTime LastReceivedRequest {
-            get => _lastReceivedRequest;
-            set {
-                _lastReceivedRequest = value;
-                StatusChangeEvent(PANEL_LINE_LAST_RECEIVED_REQUEST);
-            }
-        }
+		#region Coffee Machine State Stuff
 
-        public bool IsMakingCoffee {
-            get { return _isMakingCoffee; }
-            set {
-                _isMakingCoffee = value;
-                StatusChangeEvent(PANEL_LINE_IS_MAKING_COFFEE);
-            }
-        }
+		public event Action<string> StatusChangeEvent;
 
-        public int CoffeeLevel {
-            get { return _coffeeLevel; }
-            set {
-                _coffeeLevel = value;
-                if (_coffeeLevel > 100)
-                    _coffeeLevel = 100;
-                else if (_coffeeLevel < 0)
-                    _coffeeLevel = 0;
-                StatusChangeEvent(PANEL_LINE_COFFEE);
-            }
-        }
+#warning exibir no dash
+		public string UniqueName { get; set; }
 
-        public int WaterMl {
-            get { return _waterMl; }
-            set {
-                _waterMl = value;
-                if (_waterMl > 1000)
-                    _waterMl = 1000;
-                else if (_waterMl < 0)
-                    _waterMl = 0;
-                StatusChangeEvent(PANEL_LINE_WATER);
-            }
-        }
+		private bool _isEnabled;
 
-        public string SelectedRecipe {
-            get { return _selectedRecipe.Value; }
-            set {
-                switch (value) {
-                    case RECIPES_NEXT:
-                        _selectedRecipe = _selectedRecipe.NextOrFirst();
-                        break;
+		public bool IsEnabled {
+			get => _isEnabled;
+			set {
+				_isEnabled = value;
+#warning criar panel line e panel line builder + comandos de enable disable
+				StatusChangeEvent?.Invoke(PANEL_LINE_IS_ENABLED);
+			}
+		}
 
-                    case RECIPES_PREVIOUS:
-                        _selectedRecipe = _selectedRecipe.PreviousOrLast();
-                        break;
+		private bool _isRegistered;
 
-                    default:
-                        return;
-                }
-                StatusChangeEvent(PANEL_LINE_RECIPE);
-            }
-        }
+		public bool IsRegistered {
+			get => _isRegistered;
+			set {
+				_isRegistered = value;
+				StatusChangeEvent?.Invoke(PANEL_LINE_REGISTRATION);
+			}
+		}
 
-        public string SelectedIngredient {
-            get { return _selectedIngredient.Value; }
-            set {
-                switch (value) {
-                    case RECIPES_NEXT:
-                        _selectedIngredient = _selectedIngredient.NextOrFirst();
-                        break;
+		private bool _isMakingCoffee;
 
-                    case RECIPES_PREVIOUS:
-                        _selectedIngredient = _selectedIngredient.PreviousOrLast();
-                        break;
+		public bool IsMakingCoffee {
+			get { return _isMakingCoffee; }
+			set {
+				_isMakingCoffee = value;
+				StatusChangeEvent?.Invoke(PANEL_LINE_IS_MAKING_COFFEE);
+			}
+		}
 
-                    default:
-                        return;
-                }
-                StatusChangeEvent(PANEL_LINE_INGREDIENT);
-            }
-        }
+		private int _coffeeLevel;
 
-        private Task RegistrationTask {
-            get => Task.Factory.StartNew(() => {
-                if (IsRegistered)
-                    return;
+		public int CoffeeLevel {
+			get { return _coffeeLevel; }
+			set {
+				_coffeeLevel = value;
+#warning contants...
+				if (_coffeeLevel > 100)
+					_coffeeLevel = 100;
+				else if (_coffeeLevel < 0)
+					_coffeeLevel = 0;
+				StatusChangeEvent?.Invoke(PANEL_LINE_COFFEE_LEVEL);
+			}
+		}
 
-                lock (_connectionSync) {
-                    if (IsRegistered)
-                        return;
+		private int _waterMl;
 
-                    try {
-                        Dashboard.LogAsync($"Server registration attempt #{++_connectionAttemptCounter}.");
-                        var url = AppConfig.RegistrationUrl;
-                        var requestJson = JObject.FromObject(
-                            new RegistrationRequest() {
-                                i = AppConfig.SimulatorIp,
-                                p = AppConfig.SimulatorPort,
-                                un = AppConfig.SimulatorUniqueName
-                            });
-                        Dashboard.LogAsync($"Json created.");
+		public int WaterMl {
+			get { return _waterMl; }
+			set {
+#warning contants...
+				_waterMl = value;
+				if (_waterMl > 1000)
+					_waterMl = 1000;
+				else if (_waterMl < 0)
+					_waterMl = 0;
+				StatusChangeEvent?.Invoke(PANEL_LINE_WATER_LEVEL);
+			}
+		}
 
-                        var requestStr = requestJson.ToString();
-                        var requestBuffer = new System.Text.UTF8Encoding().GetBytes(requestStr);
-                        Dashboard.LogAsync($"Json serialized (length = {requestBuffer.Length}).");
+		#endregion Coffee Machine State Stuff
 
-                        WebRequest request = WebRequest.Create(url);
-                        request.Method = POST;
-                        request.ContentType = $"{APPLICATION_JSON}; {CHARSET_UTF8}";
-                        request.Timeout = AppConfig.RegistrationTimeout;
-                        request.ContentLength = requestBuffer.Length;
-                        Dashboard.LogAsync($"Web request set up.");
+		public MakeCoffeeResponseEnum MakeCoffee(Recipe recipe) => MakeCoffee(recipe, out Task doesntMatter);
 
-                        Dashboard.LogAsync($"Attempt to open stream.");
-                        StreamWriter streamWriter;
-                        using (streamWriter = new StreamWriter(request.GetRequestStream())) {
-                            try {
-                                Dashboard.LogAsync($"Stream writer opened.");
-                                streamWriter.Write(requestJson);
-                                Dashboard.LogAsync($"Stream writen.");
-                                streamWriter.Flush();
-                                Dashboard.LogAsync($"Stream flushed.");
-                                streamWriter.Close();
-                                Dashboard.LogAsync($"Stream stream closed.");
-                            } catch (Exception ex) {
-                                Dashboard.LogAsync($"Exception thrown while trying to write stream.");
-                                if (streamWriter != null) {
-                                    streamWriter.Close();
-                                    Dashboard.LogAsync($"Stream stream closed.");
-                                }
-                            }
-                        }
+		public MakeCoffeeResponseEnum MakeCoffee(Recipe recipe, out Task processingTask)
+		{
+			processingTask = null;
+			lock (this)
+			{
+				if (IsMakingCoffee)
+				{
+					SimulatorDashboard.Singleton.LogAsync("Order rejected, CM already busy.");
+					return MakeCoffeeResponseEnum.Busy;
+				}
 
-                        var response = (HttpWebResponse)request.GetResponse();
+				var coffeeMeasures = recipe['c'];
+				var originalCoffeeLevel = CoffeeLevel;
 
-                        if (response.StatusCode != HttpStatusCode.OK)
-                            return;
+				var waterMl = recipe['w'];
+				var originalWaterLevel = WaterMl;
 
-                        using (var streamReader = new StreamReader(response.GetResponseStream())) {
-                            var responsestr = streamReader.ReadToEnd();
-                            var responseJson = JObject.Parse(responsestr);
-                            var registrationResponse = responseJson.ToObject<RegistrationResponse>();
-                            Pin = registrationResponse.p;
-                            IsRegistered = true;
-                        }
-                    } catch (Exception) {
-                        Dashboard.LogAsync("Ooops problem at registration task.");
-                    }
-                }
-            });
-        }
+				if (originalCoffeeLevel < coffeeMeasures || originalWaterLevel < waterMl)
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Order rejected, not enough ingredients.");
+					return MakeCoffeeResponseEnum.NotEnoughIngredients;
+				}
 
-        private FakeCoffeMachine()
-        {
-            _waterMl = 1000;
-            _coffeeLevel = 100;
-            _isConnected = false;
-            _isMakingCoffee = false;
-            _communicationPin = 0;
-#warning make ingredients load like recipes (from app config)
-            _ingredients = new LinkedList<string>(new string[] { INGREDIENTS_COFFEE, INGREDIENTS_WATER });
-            _selectedIngredient = _ingredients.First;
+				processingTask = Task.Factory.StartNew(() =>
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Order ACCEPTED");
+					IsMakingCoffee = true;
 
-            LoadRecipesAsync();
+					SimulatorDashboard.Singleton.LogAsync($"Adding coffee.");
+					while (CoffeeLevel > originalCoffeeLevel - coffeeMeasures)
+					{
+						Thread.Sleep(SimulatorAppConfig.Singleton.IngredientAdditionDelayMs);
+						CoffeeLevel = CoffeeLevel - COFFEE_ITERATION_DECREMENT;
+					}
 
-            StartManagingRegistrationAsync();
-        }
+					SimulatorDashboard.Singleton.LogAsync($"Adding water.");
+					while (WaterMl > originalWaterLevel - waterMl)
+					{
+						Thread.Sleep(SimulatorAppConfig.Singleton.IngredientAdditionDelayMs);
+						WaterMl = WaterMl - WATER_ITERATION_DECREMENT;
+					}
+					IsMakingCoffee = false;
+					SimulatorDashboard.Singleton.LogAsync($"Ok, we are done.");
+				});
+			}
 
-        public void LoadRecipesAsync()
-        {
-            // gambiarra
-            if (_recipes == null)
-                _recipes = new LinkedList<string>();
+			return MakeCoffeeResponseEnum.Ok;
+		}
 
-            lock (_recipes) {
-                _recipes = null;
-                _recipes = new LinkedList<string>(Recipes.Singleton.LoadRecipesAsync());
-                _selectedRecipe = _recipes.First;
-            }
-        }
+		#region Main Task
 
-        public void IncrementSelectedIngredient(int increment)
-        {
-            IncrementIngredient(_selectedIngredient.Value, increment);
-        }
+		private CancellationTokenSource _mainTaksCancelTokenSource = new CancellationTokenSource();
 
-        private void IncrementIngredient(string ingredient, int increment)
-        {
-            switch (ingredient) {
-                case INGREDIENTS_COFFEE:
-                    CoffeeLevel += increment;
-                    break;
+		private Task _mainTask = null;
 
-                case INGREDIENTS_WATER:
-                    WaterMl += increment;
-                    break;
+		private Task CreateMainTask()
+			=> new Task(() =>
+			   {
+				   Register();
+				   while (true)
+				   {
+					   if (_mainTaksCancelTokenSource.Token.IsCancellationRequested)
+						   return;
 
-                default:
-                    return;
-            }
-        }
+					   if (IsEnabled)
+					   {
+						   ReportLevels();
+						   switch (_command)
+						   {
+							   case CommandEnum.Undefined:
+								   SimulatorDashboard.Singleton.LogAsync("ATTENTION! Undefined command...");
+								   continue;
 
-        public MakeCoffeeResponseEnum MakeSelectedCoffee()
-        {
-            return MakeCoffee(Recipes.Singleton[_selectedRecipe.Value]);
-        }
+							   case CommandEnum.DoNothing:
+								   continue;
 
-        public MakeCoffeeResponseEnum MakeCoffee(Dictionary<char, int> recipe)
-        {
-            lock (this) {
-                if (IsMakingCoffee) {
-                    Dashboard.LogAsync("Order rejected, CM already busy.");
-                    return MakeCoffeeResponseEnum.Busy;
-                }
+							   case CommandEnum.GetCoffeeOrder:
+								   TakeOrder();
+								   Task processingTask;
+								   MakeCoffeeResponseEnum makeCoffeeResponse;
+								   if (_orderReference > 0 && _recipe != null)
+									   makeCoffeeResponse = MakeCoffee(_recipe, out processingTask);
+								   else
+									   continue;
 
-                var coffeeMeasures = recipe['c'];
-                var originalCoffeeLevel = CoffeeLevel;
+								   if (makeCoffeeResponse == MakeCoffeeResponseEnum.Ok)
+								   {
+									   processingTask.Wait();
+									   TellServerOrderIsReady();
+								   }
+								   else
+									   ReportProblemDuringOrderProcessing();
+								   continue;
 
-                var waterMl = recipe['w'];
-                var originalWaterLevel = WaterMl;
+							   case CommandEnum.Disable:
+								   DisableCoffeeMachine();
+								   continue;
 
-                if (originalCoffeeLevel < coffeeMeasures || originalWaterLevel < waterMl) {
-                    Dashboard.LogAsync($"Order rejected, not enough ingredients.");
-                    return MakeCoffeeResponseEnum.NotEnoughIngredients;
-                }
+							   case CommandEnum.DisablingConfirmed:
+								   Disable();
+								   _command = CommandEnum.DoNothing;
+								   continue;
 
-                Task.Factory.StartNew(() => {
-                    Dashboard.LogAsync($"Order ACCEPTED");
-                    IsMakingCoffee = true;
+							   default:
+								   continue;
+						   }
+					   }
+				   }
+				   SimulatorDashboard.Singleton.LogAsync("Main task ENDED.");
+			   }, _mainTaksCancelTokenSource.Token);
 
-                    Dashboard.LogAsync($"Adding coffee.");
-                    while (CoffeeLevel > originalCoffeeLevel - coffeeMeasures) {
-                        Thread.Sleep(AppConfig.IngredientAdditionDelayMs);
-                        CoffeeLevel = CoffeeLevel - COFFEE_ITERATION_DECREMENT;
-                    }
+		private Task MainTask {
+			get {
+				if (_mainTask == null)
+					_mainTask = CreateMainTask();
+				return _mainTask;
+			}
+		}
 
-                    Dashboard.LogAsync($"Adding water.");
-                    while (WaterMl > originalWaterLevel - waterMl) {
-                        Thread.Sleep(AppConfig.IngredientAdditionDelayMs);
-                        WaterMl = WaterMl - WATER_ITERATION_DECREMENT;
-                    }
-                    IsMakingCoffee = false;
-                    Dashboard.LogAsync($"Ok, we are done.");
-                });
-            }
+		#endregion Main Task
 
-            return MakeCoffeeResponseEnum.Ok;
-        }
+		#region Operation aux objs
 
-        public void StartManagingRegistrationAsync()
-        {
-            Task.Factory.StartNew(() => {
-                while (true) {
-                    if (!IsRegistered) {
-                        var registrationTask = RegistrationTask;
-                        registrationTask.Wait();
-                        if (!IsRegistered)
-                            Thread.Sleep(AppConfig.RegistrationWaitAfterFailedAttempMs);
-                        else
-                            Thread.Sleep(AppConfig.RegistrationWaitAfterSuccessfulAttempMs);
-                    } else {
-                        Thread.Sleep(AppConfig.RegistrationManagerSleepMs);
-                        var elapsedTime = DateTime.Now - LastReceivedRequest;
-                        if (elapsedTime > TimeSpan.FromMilliseconds(AppConfig.MaxTimeElapsedBetweenReceivedRequestsMs))
-                            Dashboard.LogAsync("Uh oh, server doesn't love me...");
-                    }
-                }
-            });
-        }
-    }
+		private int _registrationAttemptCounter = 0;
+
+		private object _communicationSyncOnj = new object();
+
+		private CommandEnum _command;
+
+		private bool _securityDisable = false;
+
+		private uint _orderReference = 0;
+
+		private Recipe _recipe = null;
+
+		#endregion Operation aux objs
+
+		#region Communication power switch and enable
+
+		public void TurnOn()
+		{
+			if (MainTask.Status == TaskStatus.Running)
+				return;
+			MainTask.Start();
+			SimulatorDashboard.Singleton.LogAsync("Main task started.");
+		}
+
+		public void TurnOff()
+		{
+			if (MainTask.Status != TaskStatus.Running)
+				return;
+			_mainTaksCancelTokenSource.Cancel();
+			SimulatorDashboard.Singleton.LogAsync("Main task will stop.");
+			Unregister();
+		}
+
+		public void Enable()
+		{
+			SimulatorDashboard.Singleton.LogAsync("Fake coffee machine ENABLED.");
+			IsEnabled = true;
+		}
+
+		public void Disable()
+		{
+			SimulatorDashboard.Singleton.LogAsync("Fake coffee machine DISABLED.");
+			IsEnabled = false;
+		}
+
+		#endregion Communication power switch and enable
+
+		#region Communication stuff
+
+		private TResponse SendHttpRequest<TRequest, TResponse>(TRequest requestObj, string url, int timeout = -1, string method = POST)
+			where TRequest : Request
+			where TResponse : Response
+
+		{
+			lock (_communicationSyncOnj)
+			{
+				try
+				{
+					var registrationJsonStr = JsonConvert.SerializeObject(requestObj, new JsonSerializerSettings()
+					{
+						ContractResolver = new CamelCasePropertyNamesContractResolver(),
+						NullValueHandling = NullValueHandling.Ignore
+					});
+					var request = (HttpWebRequest)WebRequest.Create(url);
+					request.Method = method;
+					request.ContentType = $"{APPLICATION_JSON}";
+#warning colocar const aqui!!!
+					request.Timeout = timeout <= 0 ? timeout = SimulatorAppConfig.Singleton.StandardTimeout : timeout;
+
+					StreamWriter streamWriter;
+					using (streamWriter = new StreamWriter(request.GetRequestStream()))
+					{
+						try
+						{
+							streamWriter.Write(registrationJsonStr);
+							streamWriter.Flush();
+							streamWriter.Close();
+						}
+						catch (Exception exception)
+						{
+							if (streamWriter != null)
+							{
+								streamWriter.Close();
+								streamWriter.Dispose();
+							}
+							SimulatorDashboard.Singleton.LogAsync("Problem ocurred during communication (on write stream phase).");
+							return null;
+						}
+					}
+
+					TResponse responseObj;
+					var response = (HttpWebResponse)request.GetResponse();
+					using (var streamReader = new StreamReader(response.GetResponseStream()))
+					{
+						var responseStr = streamReader.ReadToEnd();
+						//if (ENCRYPTION_ENABLE)
+						//	responseStr = responseStr.Decrypt(KEY);
+						responseObj = JObject.Parse(responseStr).ToObject<TResponse>();
+					}
+					return responseObj;
+				}
+				catch (WebException exception)
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Web exception during communication. Status <<{exception.Status.ToString()}>>.");
+					return null;
+				}
+				catch (Exception exception)
+				{
+					SimulatorDashboard.Singleton.LogAsync("Problem ocurred during communication (exception thrown).");
+					return null;
+				}
+			}
+		}
+
+		private List<object> SendRequestToServer<TRequest, TResponse>(string subject, string url, TRequest request, params Func<TResponse, object>[] resultAccessors)
+			where TRequest : Request
+			where TResponse : Response
+		{
+			var results = new List<object>();
+			results.Add(false);
+			try
+			{
+				request.Mac = SimulatorAppConfig.Singleton.SimulatorMac;
+				var response = SendHttpRequest<TRequest, TResponse>(request, url);
+
+				if (response == null)
+					return results;
+
+				if (response.ResponseCode == (int)ResponseCodeEnum.OK)
+				{
+					results[0] = true;
+					for (var i = 0; resultAccessors != null && i < resultAccessors.Length; i++)
+						results.Add(resultAccessors[i].Invoke(response));
+					return results;
+				}
+				else
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Message <<{subject}>> FAILED (response code {response.ResponseCode}).");
+					return results;
+				}
+			}
+			catch (Exception exception)
+			{
+				SimulatorDashboard.Singleton.LogAsync($"Message <<{subject}>> FAILED (exception thrown).");
+				return results;
+			}
+		}
+
+#warning tranformar em const
+
+		private List<object> TryManyTimesIfNack(Func<List<object>> routine, uint howManyTimes = 10)
+		{
+			List<object> results = null;
+			for (var i = 0; i < howManyTimes; i++)
+			{
+				results = routine.Invoke();
+				if ((bool)results[0])
+					break;
+			}
+			return results;
+		}
+
+		#endregion Communication stuff
+
+		#region Registration
+
+#warning delete this
+
+		private void SendNewOffsets(out bool acknowledge)
+		{
+			acknowledge = false;
+			SimulatorDashboard.Singleton.LogAsync($"I will send new offsets to the server.");
+			try
+			{
+				var request = new RegistrationRequest()
+				{
+					RegistrationMessage = (int)RegistrationMessageEnum.Offsets,
+#warning fazer isso controlavel no dash
+					CoffeeEmptyOffset = 0,
+					CoffeeFullOffset = 100,
+					WaterEmptyOffset = 0,
+					WaterFullOffset = 1000,
+					Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+				};
+
+				var response = SendHttpRequest<RegistrationRequest, RegistrationResponse>(request, SimulatorAppConfig.Singleton.RegistrationUrl);
+
+				if (response == null)
+					return;
+
+				if (response.ResponseCode != (int)ResponseCodeEnum.OK)
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (response code {response.ResponseCode}).");
+				}
+				else
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets SUCCESSFUL.");
+					acknowledge = true;
+				}
+			}
+			catch (Exception)
+			{
+				SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (exception thrown).");
+			}
+#warning add comando no dash
+		}
+
+		private void Register()
+		{
+			while (!IsRegistered)
+			{
+				SimulatorDashboard.Singleton.LogAsync($"I will try to register at \"{SimulatorAppConfig.Singleton.ServerAddress}\".");
+				var attemptRequest = new RegistrationRequest()
+				{
+					RegistrationMessage = (int)RegistrationMessageEnum.AttemptRegistration,
+					CoffeeEmptyOffset = 0,
+					CoffeeFullOffset = 100,
+					WaterEmptyOffset = 0,
+					WaterFullOffset = 1000,
+					Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+					UniqueName = SimulatorAppConfig.Singleton.SimulatorUniqueName
+				};
+
+				var results = SendRequestToServer($"Registration attempt",
+												  SimulatorAppConfig.Singleton.RegistrationUrl,
+												  attemptRequest,
+												  (RegistrationResponse r) => r.TrueUniqueName,
+												  (RegistrationResponse r) => r.ResponseCode);
+
+				bool hasResponseCode = false;
+				if (results.Count == 3)
+					hasResponseCode = true;
+
+				if ((bool)results[ACK] || (hasResponseCode && (int)results[REGISTRATION_ATTEMPT_RESPONSE_CODE] == (int)RegistrationResponseCodeEnum.RegisteredButNotAccepted))
+				{
+					UniqueName = (string)results[TRUE_UNIQUE_NAME];
+					SimulatorDashboard.Singleton.LogAsync($"Registration attempt SUCCESSFUL, I will try to accept. Name: {UniqueName}.");
+
+					var acceptanceRequest = new RegistrationRequest()
+					{
+						RegistrationMessage = (int)RegistrationMessageEnum.RegistrationAcceptance,
+						Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+					};
+					results = TryManyTimesIfNack(() => SendRequestToServer($"Registration acceptance",
+																		   SimulatorAppConfig.Singleton.RegistrationUrl,
+																		   acceptanceRequest,
+																		   (RegistrationResponse r) => r.ResponseCode));
+
+					bool hasResponseCode2 = false;
+					if (results.Count == 2)
+						hasResponseCode2 = true;
+
+					if ((bool)results[ACK])
+					{
+						IsRegistered = true;
+						SimulatorDashboard.Singleton.LogAsync($"Registration acceptance SUCCESSFUL.");
+					}
+					else if (hasResponseCode2 && (int)results[REGISTRATION_ACCEPTANCE_RESPONSE_CODE] == (int)RegistrationResponseCodeEnum.AlreadyRegistered)
+					{
+						IsRegistered = true;
+						SimulatorDashboard.Singleton.LogAsync($"Already registered.");
+					}
+				}
+				else if (hasResponseCode && (int)results[REGISTRATION_ATTEMPT_RESPONSE_CODE] == (int)RegistrationResponseCodeEnum.AlreadyRegistered)
+				{
+					IsRegistered = true;
+					SimulatorDashboard.Singleton.LogAsync($"Already registered.");
+				}
+			}
+		}
+
+		private void Unregister()
+		{
+			while (IsRegistered)
+			{
+				SimulatorDashboard.Singleton.LogAsync($"I will try to UNregister <<{UniqueName}>>.");
+				var unregisterRequest = new RegistrationRequest()
+				{
+					RegistrationMessage = (int)RegistrationMessageEnum.Unregister,
+					Mac = SimulatorAppConfig.Singleton.SimulatorMac
+				};
+
+				var results = SendRequestToServer<RegistrationRequest, RegistrationResponse>($"Unregistration of <<{UniqueName}>>",
+																							 SimulatorAppConfig.Singleton.RegistrationUrl,
+																							 unregisterRequest);
+				if ((bool)results[0])
+				{
+					SimulatorDashboard.Singleton.LogAsync($"UNregistration of <<{UniqueName}>> SUCCESSFUL.");
+					IsRegistered = false;
+				}
+			}
+		}
+
+		#endregion Registration
+
+		#region Report
+
+		private void ReportLevels()
+		{
+			SimulatorDashboard.Singleton.LogAsync($"Reporting levels ({DateTime.Now.ToString()}).");
+			var levelsReportRequest = new ReportRequest()
+			{
+				ReportMessage = (int)ReportMessageEnum.Levels,
+				IsEnabled = IsEnabled,
+				CoffeeLevel = CoffeeLevel,
+				Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+				WaterLevel = WaterMl
+			};
+
+			var results = SendRequestToServer("Levels report", SimulatorAppConfig.Singleton.ReportUrl, levelsReportRequest, (ReportResponse r) => r.Command);
+
+			if ((bool)results[ACK])
+			{
+				_command = (CommandEnum)results[COMMAND];
+				SimulatorDashboard.Singleton.LogAsync($"Command received : {_command.ToString()}");
+			}
+			else
+				_command = CommandEnum.DoNothing;
+		}
+
+		private void DisableCoffeeMachine()
+		{
+			SimulatorDashboard.Singleton.LogAsync($"I will warn the server that i'm disabling.");
+			var disablingRequest = new ReportRequest()
+			{
+				ReportMessage = (int)ReportMessageEnum.DisablingCoffeeMachine,
+				Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+			};
+
+#warning transformar em configs
+			var results = TryManyTimesIfNack(() => SendRequestToServer<ReportRequest, ReportResponse>("Disabling",
+																									  SimulatorAppConfig.Singleton.ReportUrl,
+																									  disablingRequest),
+																									  100);
+
+			if ((bool)results[ACK])
+			{
+				_command = (CommandEnum)results[COMMAND];
+				if (_command == CommandEnum.DisablingConfirmed)
+					SimulatorDashboard.Singleton.LogAsync($"Ok, server is aware that i will disable.");
+				else
+					SimulatorDashboard.Singleton.LogAsync($"Disabling CANCELED");
+			}
+			else
+				SimulatorDashboard.Singleton.LogAsync($"Server is NOT AWARE that i will disable, but I'll do it anyway.");
+		}
+
+		#endregion Report
+
+		#region Order
+
+		private void TakeOrder()
+		{
+			SimulatorDashboard.Singleton.LogAsync($"I will ask for an order ({DateTime.Now.ToString()}).");
+			var giveMeOrderRequest = new OrderRequest()
+			{
+				OrderMessage = (int)OrderMessageEnum.GiveMeAnOrder,
+				Mac = SimulatorAppConfig.Singleton.SimulatorMac
+			};
+
+			var results = TryManyTimesIfNack(() => SendRequestToServer("Give me an order",
+																	   SimulatorAppConfig.Singleton.OrderUrl,
+																	   giveMeOrderRequest,
+																	   (OrderResponse r) => r.OrderReference,
+																	   (OrderResponse r) => Recipe.Parse(r.Recipe)));
+
+			if ((bool)results[ACK])
+			{
+				_orderReference = (uint)results[ORDER_REFERENCE];
+				_recipe = (Recipe)results[RECIPE];
+
+				SimulatorDashboard.Singleton.LogAsync($"Order taken (ref {_orderReference}), i'll tell the server that i'll prepare it.");
+				var processingWillStartRequest = new OrderRequest()
+				{
+					OrderMessage = (int)OrderMessageEnum.ProcessingWillStart,
+					OrderReference = _orderReference,
+					Mac = SimulatorAppConfig.Singleton.SimulatorMac
+				};
+
+				results = TryManyTimesIfNack(() => SendRequestToServer("Give me an order",
+																	   SimulatorAppConfig.Singleton.ReportUrl,
+																	   processingWillStartRequest,
+																	   (OrderResponse r) => r.OrderReference,
+																	   (OrderResponse r) => Recipe.Parse(r.Recipe)));
+
+				if ((bool)results[ACK])
+					SimulatorDashboard.Singleton.LogAsync($"Ok, server knows that ref {_orderReference} will processed.");
+				else
+				{
+					SimulatorDashboard.Singleton.LogAsync($"I couldn't tell the server that {_orderReference} would be processed.");
+					SimulatorDashboard.Singleton.LogAsync($"Order {_orderReference} CANCELED.");
+					_orderReference = 0;
+					_recipe = null;
+				}
+			}
+			else
+			{
+				SimulatorDashboard.Singleton.LogAsync("I couldn't get an order...");
+				return;
+			}
+		}
+
+		private void TellServerOrderIsReady()
+		{
+			SimulatorDashboard.Singleton.LogAsync($"I will tell the server that ref {_orderReference} is READY!!!.");
+
+			var orderReadyRequest = new OrderRequest()
+			{
+				OrderMessage = (int)OrderMessageEnum.OrderReady,
+				OrderReference = _orderReference,
+				Mac = SimulatorAppConfig.Singleton.SimulatorMac
+			};
+
+			var results = TryManyTimesIfNack(() => SendRequestToServer<OrderRequest, OrderResponse>("Order ready!",
+																									SimulatorAppConfig.Singleton.OrderUrl,
+																									orderReadyRequest));
+
+			if ((bool)results[ACK])
+				SimulatorDashboard.Singleton.LogAsync($"Ok, SERVER KNOWS that ref {_orderReference} is READY.");
+			else
+				SimulatorDashboard.Singleton.LogAsync($"I COULD NOT TELL the server that {_orderReference} is ready.");
+
+			_orderReference = 0;
+			_recipe = null;
+		}
+
+		private void ReportProblemDuringOrderProcessing()
+		{
+			SimulatorDashboard.Singleton.LogAsync($"I will warn the server that a problem ocurred.");
+
+			var problemOcurredRequest = new OrderRequest()
+			{
+				OrderMessage = (int)OrderMessageEnum.ProblemOcurredDuringProcessing,
+				OrderReference = _orderReference,
+				Mac = SimulatorAppConfig.Singleton.SimulatorMac
+			};
+
+			var results = TryManyTimesIfNack(() => SendRequestToServer<OrderRequest, OrderResponse>("Problem ocurred during processing",
+																									SimulatorAppConfig.Singleton.OrderUrl,
+																									problemOcurredRequest));
+
+			if ((bool)results[ACK])
+				SimulatorDashboard.Singleton.LogAsync($"Ok, server knows that a problem ocurred.");
+			else
+			{
+				SimulatorDashboard.Singleton.LogAsync($"I COULD NOT tell the server that a problem ocurred and I WILL DISABLE.");
+				_securityDisable = true;
+			}
+
+			_orderReference = 0;
+			_recipe = null;
+		}
+
+		#endregion Order
+	}
 }

@@ -1,27 +1,36 @@
-﻿using Microsoft.Owin.Hosting;
+﻿using Microsoft.Practices.Unity;
+using Mkfeina.CoffeeMachineSimulator;
+using Mkfeina.Domain;
+using Mkfeina.Domain.Panels;
 using System;
-using System.Threading;
+using static Mkfeina.Domain.Extentions;
 
-namespace Mkfeina.CoffeeMachineSimulator
+namespace Mkfeina.Simulator
 {
-    public class Program
-    {
-        public static Action<ConsoleKeyInfo> KeyEvent;
+	public class Program
+	{
+		public static Action<ConsoleKeyInfo> KeyEvent;
 
-        private static void Main(string[] args)
-        {
+		private static void Main(string[] args)
+		{
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<CommandInterpreter, SimulatorCommandInterpreter>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<PanelLineBuilder, SimulatorPanelLineBuilder>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AppConfig>(SimulatorAppConfig.Singleton);
 
-            AppConfig.LoadAppConfig();
-            Dashboard.Load();
+			SimulatorAppConfig.Singleton.ReloadConfigs();
+			CookBook.Singleton.LoadRecipes(wait: true);
 
-            var simulatorAddress = $"http://{AppConfig.SimulatorIp}:{AppConfig.SimulatorPort}";
-            StartOptions options = new StartOptions();
-            options.Urls.Add(simulatorAddress);
+			SimulatorDashboard.Singleton.Title = SimulatorAppConfig.Singleton.SimulatorUniqueName;
+			SimulatorDashboard.Singleton.CreatePanels(SimulatorAppConfig.Singleton.PanelsConfigs);
+			SimulatorDashboard.Singleton.AddFixedLinesToPanels(SimulatorAppConfig.Singleton.PanelsLinesCollections);
 
-            using (WebApp.Start<Startup>(options)) {
-                Dashboard.LogAsync($"Coffee machine simulator's api is up!");
-                Dashboard.StartCommandInterpreter();
-            }
-        }
-    }
+			FakeCoffeMachine.Singleton.StatusChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
+			CookBookExtension.SelectedRecipeChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
+			SimulatorAppConfig.Singleton.ConfigChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("configs");
+
+			FakeCoffeMachine.Singleton.TurnOn();
+
+			while (true) { }
+		}
+	}
 }

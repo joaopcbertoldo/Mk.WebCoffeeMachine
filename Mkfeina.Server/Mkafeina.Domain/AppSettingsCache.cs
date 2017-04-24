@@ -1,39 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 
-namespace Mkfeina.CoffeeMachineSimulator
+namespace Mkfeina.Simulator
 {
-    public class AppSettingsCache
-    {
-        private const string APP_SETTINGS = "appSettings";
+	public class AppSettingsCache
+	{
+		private const string APP_SETTINGS = "appSettings";
 
-        private Dictionary<string, string> _settings;
+		private ExeConfigurationFileMap _configFileMap = new ExeConfigurationFileMap();
 
-        public void LoadSettingsFromAppConfig()
-        {
-            ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-            configFileMap.ExeConfigFilename = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            Configuration configuration = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
-            var section = (AppSettingsSection)configuration.GetSection(APP_SETTINGS);
-            _settings = new Dictionary<string, string>();
+		private KeyValueConfigurationCollection _settings;
 
-            foreach (var key in section.Settings.AllKeys)
-                _settings.Add(key, section.Settings[key].Value);
-        }
+		public AppSettingsCache()
+		{
+			_configFileMap.ExeConfigFilename = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+		}
 
-        public string this[string key] {
-            get {
-                try {
-                    var value = _settings[key];
-                    return value;
-                } catch (Exception) {
-                    return null;
-                }
-            }
-        }
+		public void RefreshCache()
+		{
+			Configuration configuration = ConfigurationManager.OpenMappedExeConfiguration(_configFileMap, ConfigurationUserLevel.None);
+			var section = (AppSettingsSection)configuration.GetSection(APP_SETTINGS);
+			_settings = section.Settings;
+		}
 
-        // the string parameter is the name of the changed setting
-        public event Action<string> AppConfigChangeEvent;
-    }
+		public string this[string key] { get => _settings[key].Value; }
+
+		public string[] AllKeys { get => _settings.AllKeys; }
+
+		
+	}
 }
