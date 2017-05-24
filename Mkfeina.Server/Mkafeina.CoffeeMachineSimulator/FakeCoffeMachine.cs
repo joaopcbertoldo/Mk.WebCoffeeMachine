@@ -671,7 +671,7 @@ namespace Mkfeina.Simulator
 				};
 
 				results = TryManyTimesIfNack(() => SendRequestToServer("Give me an order",
-																	   SimulatorAppConfig.Singleton.ReportUrl,
+																	   SimulatorAppConfig.Singleton.OrderUrl,
 																	   processingWillStartRequest,
 																	   (OrderResponse r) => r.OrderReference,
 																	   (OrderResponse r) => Recipe.Parse(r.Recipe)));

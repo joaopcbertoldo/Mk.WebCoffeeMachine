@@ -37,10 +37,11 @@ namespace Mkfeina.Domain
 				str = str.Remove(0, 1); // cut the (
 
 				var ingredient = str[0];  // get the char for the resource
-				str = str.Remove(0, 2); // remove the char and the =
+				str = str.Remove(0, 1); // remove the char and the =
 
 				var capture = Regex.Match(str, @"=\d+"); // get the number
-				var portion = int.Parse(capture.Value); // parse to an int
+				var captureStr = capture.ToString().Remove(0, 1);
+				var portion = int.Parse(captureStr); // parse to an int
 				str = str.Remove(0, capture.Length); // remove the number
 
 				recipe.AddIngredient(ingredient, portion);
@@ -48,10 +49,7 @@ namespace Mkfeina.Domain
 				var nextChar = str[0]; // get the next char
 
 				if (nextChar == ',')
-				{
-					str = str.Remove(0, 1); // cut the ,
 					continue;
-				}
 				else if (nextChar == ')')
 					break;
 				else

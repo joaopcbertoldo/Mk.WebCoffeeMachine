@@ -1,5 +1,4 @@
 ﻿using Mkfeina.Domain.ServerArduinoComm;
-using Mkfeina.Server.Attributes;
 using Mkfeina.Server.Domain;
 using System.Web.Http;
 
@@ -16,9 +15,9 @@ namespace Mkfeina.Server.Controllers
 		}
 
 		[HttpPost]
-		[Route("registration")]
+		[Route("api/coffeemachine/registration")]
 #warning evoluir para ihttpactionresult
-		public RegistrationResponse Register([FromBody] RegistrationRequest request)
+		public RegistrationResponse Registration([FromBody] RegistrationRequest request)
 		{
 			switch ((RegistrationMessageEnum)request.RegistrationMessage)
 			{
@@ -32,11 +31,11 @@ namespace Mkfeina.Server.Controllers
 					return CoffeeMachineProxy.HandleRegistrationAcceptance(request);
 
 				case RegistrationMessageEnum.Offsets:
-#warning fazer este
+#warning fazer Offsets
 					return new RegistrationResponse() { ResponseCode = (int)ResponseCodeEnum.InvalidRequest };
 
 				case RegistrationMessageEnum.Unregister:
-#warning fazer este
+#warning fazer Unregister
 					return new RegistrationResponse() { ResponseCode = (int)ResponseCodeEnum.InvalidRequest };
 
 				default:
@@ -45,26 +44,33 @@ namespace Mkfeina.Server.Controllers
 		}
 
 		[HttpPost]
-		[Route("report")]
+		[Route("api/coffeemachine/report")]
 #warning evoluir para ihttpactionresult
 		public ReportResponse Report([FromBody] ReportRequest request)
 		{
-			return new ReportResponse()
-			{
-				ResponseCode = (int)ResponseCodeEnum.OK,
-				Command = (int)CommandEnum.DoNothing
-			};
+			var mac = request.Mac;
+			if (CoffeeMachineProxy.RegistrationStatus(mac) != RegistrationStatusEnum.Registered)
+				return new ReportResponse()
+				{
+					ResponseCode = (int)ResponseCodeEnum.InvalidRequest
+				};
+			else
+				return CoffeeMachineProxy.GetProxy(mac).HandleReportRequest(request);
 		}
 
 		[HttpPost]
-		[Route("order")]
+		[Route("api/coffeemachine/order")]
 #warning evoluir para ihttpactionresult
-		public OrderResponse MakeCoffee([FromBody] OrderRequest request)
+		public OrderResponse Order([FromBody] OrderRequest request)
 		{
-			return new OrderResponse()
-			{
-				ResponseCode = (int)ResponseCodeEnum.Cancel
-			};
+			var mac = request.Mac;
+			if (CoffeeMachineProxy.RegistrationStatus(mac) != RegistrationStatusEnum.Registered)
+				return new OrderResponse()
+				{
+					ResponseCode = (int)ResponseCodeEnum.InvalidRequest
+				};
+			else
+				return CoffeeMachineProxy.GetProxy(mac).HandleOrderRequest(request);
 		}
 	}
 }

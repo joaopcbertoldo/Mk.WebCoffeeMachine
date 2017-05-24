@@ -15,12 +15,12 @@ namespace Mkfeina.Domain.ServerArduinoComm
 
 		public bool IsEnabled { get; set; }
 
-		public int CoffeeLevel { get; set; } = NOT_AVAILABLE;
+		public float CoffeeLevel { get; set; } = NOT_AVAILABLE;
 
-		public int WaterLevel { get; set; } = NOT_AVAILABLE;
+		public float WaterLevel { get; set; } = NOT_AVAILABLE;
 
-		public int MilkLevel { get; set; } = NOT_AVAILABLE;
+		public float MilkLevel { get; set; } = NOT_AVAILABLE;
 
-		public int SugarLevel { get; set; } = NOT_AVAILABLE;
+		public float SugarLevel { get; set; } = NOT_AVAILABLE;
 	}
 }

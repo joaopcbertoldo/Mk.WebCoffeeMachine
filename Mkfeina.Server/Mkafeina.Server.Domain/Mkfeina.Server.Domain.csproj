@@ -53,9 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientOrderResponse.cs" />
+    <Compile Include="ClientOrderRequest.cs" />
     <Compile Include="CoffeeMachineProxy.cs" />
-    <Compile Include="IObservable.cs" />
-    <Compile Include="IObserver.cs" />
+    <Compile Include="CoffeeMachineProxyOffsets.cs" />
+    <Compile Include="CoffeeMachineProxyState.cs" />
+    <Compile Include="EmailSender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
