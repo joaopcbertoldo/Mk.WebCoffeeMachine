@@ -1,10 +1,10 @@
-﻿using Mkfeina.CoffeeMachineSimulator;
-using Mkfeina.Domain;
-using Mkfeina.Domain.Panels;
+﻿using Mkafeina.CoffeeMachineSimulator;
+using Mkafeina.Domain;
+using Mkafeina.Domain.Panels;
 using System;
-using static Mkfeina.Simulator.Constants;
+using static Mkafeina.Simulator.Constants;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class SimulatorPanelLineBuilder : PanelLineBuilder
 	{
@@ -44,7 +44,7 @@ namespace Mkfeina.Simulator
 						return $"Selected ingredient : ERROR";
 
 				case PANEL_LINE_SELECTED_RECIPE:
-					return $"Selected recipe : {CookBook.Singleton.SelectedRecipeName()}";
+					return $"Selected recipe : {CookBook.Sgt.SelectedRecipeName()}";
 
 				#endregion Status Panel Lines
 

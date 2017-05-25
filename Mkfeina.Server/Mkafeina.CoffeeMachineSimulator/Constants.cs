@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Simulator
+﻿namespace Mkafeina.Simulator
 {
 	public static class Constants
 	{

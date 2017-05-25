@@ -1,6 +1,6 @@
-﻿namespace Mkfeina.Server.Domain
+﻿namespace Mkafeina.Server.Domain
 {
-	internal class CoffeeMachineProxyState
+	internal class CMProxyState
 	{
 		internal string UniqueName;
 

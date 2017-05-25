@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Domain.Panels
+﻿namespace Mkafeina.Domain.Panels
 {
     internal static class Constants
     {

@@ -1,10 +1,10 @@
-﻿using Mkfeina.Domain;
-using Mkfeina.Domain.Panels;
+﻿using Mkafeina.Domain;
+using Mkafeina.Domain.Panels;
 using System.Linq;
 using System.Net.NetworkInformation;
-using static Mkfeina.Simulator.Constants;
+using static Mkafeina.Simulator.Constants;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class SimulatorAppConfig : AppConfig
 	{

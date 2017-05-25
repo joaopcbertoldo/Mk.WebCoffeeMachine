@@ -1,6 +1,6 @@
-﻿using Mkfeina.Domain;
+﻿using Mkafeina.Domain;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class SimulatorDashboard : Dashboard
 	{

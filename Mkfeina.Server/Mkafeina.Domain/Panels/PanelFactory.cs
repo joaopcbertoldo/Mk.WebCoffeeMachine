@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Domain.Panels
+﻿namespace Mkafeina.Domain.Panels
 {
 	public class PanelFactory
 	{

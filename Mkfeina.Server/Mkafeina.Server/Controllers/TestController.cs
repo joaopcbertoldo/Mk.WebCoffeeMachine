@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Web.Http;
 
-namespace Mkfeina.Server.Controllers
+namespace Mkafeina.Server.Controllers
 {
 	public class TestController : ApiController
 	{

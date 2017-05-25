@@ -4,6 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain.ServerWebApi
+namespace Mkafeina.Domain.ServerWebApi
 {
 }

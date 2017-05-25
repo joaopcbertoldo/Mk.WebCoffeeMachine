@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Mail;
 
-namespace Mkfeina.Server.Domain
+namespace Mkafeina.Server.Domain
 {
 	public class EmailSender
 	{

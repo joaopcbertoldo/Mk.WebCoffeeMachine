@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static Mkfeina.Domain.Panels.Constants;
+using static Mkafeina.Domain.Panels.Constants;
 
-namespace Mkfeina.Domain.Panels
+namespace Mkafeina.Domain.Panels
 {
     internal static class ConsoleSpaceManager
     {

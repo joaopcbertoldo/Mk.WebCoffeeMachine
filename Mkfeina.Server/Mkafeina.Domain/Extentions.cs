@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
 	public static class Extentions
 	{

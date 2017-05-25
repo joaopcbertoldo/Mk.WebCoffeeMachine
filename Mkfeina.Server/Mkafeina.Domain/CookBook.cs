@@ -1,17 +1,17 @@
-﻿using Mkfeina.Simulator;
+﻿using Mkafeina.Simulator;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
 	public class CookBook
 	{
 		#region Singleton Stuff
 
-		private static CookBook _singleton = new CookBook();
+		private static CookBook _sgt = new CookBook();
 
-		public static CookBook Singleton { get => _singleton; }
+		public static CookBook Sgt { get => _sgt; }
 
 		private CookBook()
 		{

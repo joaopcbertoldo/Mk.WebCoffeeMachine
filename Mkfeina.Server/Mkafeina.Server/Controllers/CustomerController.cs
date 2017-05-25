@@ -1,9 +1,9 @@
-﻿using Mkfeina.Server.Domain;
+﻿using Mkafeina.Server.Domain;
 using RazorEngine;
 using System.Net.Http;
 using System.Web.Http;
 
-namespace Mkfeina.Server.Controllers
+namespace Mkafeina.Server.Controllers
 {
 	public class CustomerController : ApiController
 	{
@@ -12,8 +12,8 @@ namespace Mkfeina.Server.Controllers
 #warning evoluir para ihttpactionresult
 		public CustomerOrderResponse Order([FromBody] CustomerOrderRequest request)
 		{
-			if (CoffeeMachineProxy.MachineIsRegistered(request.MachineUniqueName))
-				return CoffeeMachineProxy.GetProxyByUniqueName(request.MachineUniqueName).HandleClientOrderRequest(request);
+			if (CMProxy.MachineIsRegistered(request.MachineUniqueName))
+				return CMProxy.GetProxyByUniqueName(request.MachineUniqueName).HandleClientOrderRequest(request);
 			else
 				return new CustomerOrderResponse()
 				{

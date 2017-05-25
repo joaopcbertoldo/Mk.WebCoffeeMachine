@@ -1,6 +1,6 @@
-﻿using static Mkfeina.Domain.ServerArduinoComm.Constants;
+﻿using static Mkafeina.Domain.ServerArduinoComm.Constants;
 
-namespace Mkfeina.Domain.ServerArduinoComm
+namespace Mkafeina.Domain.ServerArduinoComm
 {
 	public enum RegistrationMessageEnum
 	{

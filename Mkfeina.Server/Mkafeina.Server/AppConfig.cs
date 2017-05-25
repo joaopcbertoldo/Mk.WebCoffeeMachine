@@ -1,17 +1,48 @@
-﻿using System.Configuration;
+﻿using Mkafeina.Domain.Panels;
+using static Mkafeina.Server.Constants;
 
-namespace Mkfeina.Server
+namespace Mkafeina.Server
 {
-    public static class AppConfig
-    {
-        public static string ConsoleTitle { get => ConfigurationManager.AppSettings["consoleTitle"]; }
+	public class AppConfig : Mkafeina.Domain.AppConfig
+	{
+		private const string
+			STATUS = "status",
+			CONFIGS = "configs",
+			COMMANDS = "commands",
+			LOG = "log";
 
-        public static string ServerIp { get => ConfigurationManager.AppSettings["serverIp"]; }
+		#region Sinlgeton Stuff
 
-        public static int ServerPort { get => int.Parse(ConfigurationManager.AppSettings["serverPort"]); }
+		private AppConfig() : base()
+		{
+		}
 
-        public static string LogPanelTitle { get => ConfigurationManager.AppSettings["logPanelTitle"]; }
+		private static AppConfig __sgt;
 
-        public static int MaxLogMessages { get => int.Parse(ConfigurationManager.AppSettings["maxLogMessages"]); }
-    }
+		public static AppConfig Sgt {
+			get {
+				if (__sgt == null)
+					__sgt = new AppConfig();
+				return __sgt;
+			}
+		}
+
+		#endregion Sinlgeton Stuff
+
+		#region Panels Configs
+
+		public PanelConfig StatusPanelConfig { get => new PanelConfig(PanelTitle(STATUS), 0, 0, PanelWidth(STATUS), PanelHeight(STATUS), PanelColumns(STATUS)); }
+
+		public PanelConfig ConfigsPanelConfig { get => new PanelConfig(PanelTitle(CONFIGS), 0, PanelHeight(STATUS) + VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(CONFIGS), PanelHeight(CONFIGS), PanelColumns(CONFIGS)); }
+
+		public PanelConfig CommandsPanelConfig { get => new PanelConfig(PanelTitle(COMMANDS), 0, PanelHeight(CONFIGS) + PanelHeight(STATUS) + 2 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(COMMANDS), PanelHeight(COMMANDS), PanelColumns(COMMANDS)); }
+
+		public PanelConfig LogPanelConfig { get => new PanelConfig(PanelTitle(LOG), 0, PanelHeight(COMMANDS) + PanelHeight(CONFIGS) + PanelHeight(STATUS) + 3 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(LOG), PanelHeight(LOG), PanelColumns(LOG)); }
+
+		#endregion Panels Configs
+
+		public string ServerAddress { get => _cache[SERVER_ADDRESS]; }
+		public string ServerNiceAddress { get => _cache[SERVER_NICE_ADDRESS]; }
+		public string ServerName { get => _cache[SERVER_NAME]; }
+	}
 }

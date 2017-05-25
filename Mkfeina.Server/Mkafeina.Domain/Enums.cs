@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
     public enum MakeCoffeeResponseEnum
     {

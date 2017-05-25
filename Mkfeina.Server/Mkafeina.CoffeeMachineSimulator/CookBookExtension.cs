@@ -1,10 +1,10 @@
-﻿using Mkfeina.Domain;
+﻿using Mkafeina.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Mkfeina.Simulator.Constants;
+using static Mkafeina.Simulator.Constants;
 
-namespace Mkfeina.CoffeeMachineSimulator
+namespace Mkafeina.CoffeeMachineSimulator
 {
 	public static class CookBookExtension
 	{

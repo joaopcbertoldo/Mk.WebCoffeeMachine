@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static Mkfeina.Domain.Extentions;
-using static Mkfeina.Domain.Panels.Constants;
+using static Mkafeina.Domain.Extentions;
+using static Mkafeina.Domain.Panels.Constants;
 
-namespace Mkfeina.Domain.Panels
+namespace Mkafeina.Domain.Panels
 {
 	public class Panel
 	{

@@ -1,12 +1,12 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkfeina.Domain.Panels;
-using Mkfeina.Simulator;
+using Mkafeina.Domain.Panels;
+using Mkafeina.Simulator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Mkfeina.Domain.Constants;
+using static Mkafeina.Domain.Constants;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
 	public abstract class AppConfig
 	{
@@ -41,15 +41,7 @@ namespace Mkfeina.Domain
 																.First(
 								prop => prop.Name == name.FirstLetterToUpper() + APP_CONFIG_PANEL_CONFIG_PROPERTY_TERMINATION
 																 ).GetMethod
-																.Invoke(this, null));
-				//{
-				//	var props = appConfigType.GetProperties();
-				//	var theone = props.First(p => p.Name == name.FirstLetterToUpper() + APP_CONFIG_PANEL_CONFIG_PROPERTY_TERMINATION);
-				//	var met = theone.GetMethod;
-				//	var config = (PanelConfig)met.Invoke(this, null);
-				//	configs.Add(name, config);
-				//}
-
+																  .Invoke(this, null));
 					return configs;
 			}
 		}

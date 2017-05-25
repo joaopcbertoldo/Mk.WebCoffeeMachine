@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Domain.ServerArduinoComm
+﻿namespace Mkafeina.Domain.ServerArduinoComm
 {
 	public enum CommandEnum
 	{

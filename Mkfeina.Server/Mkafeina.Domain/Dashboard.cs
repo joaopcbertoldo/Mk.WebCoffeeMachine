@@ -1,14 +1,23 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkfeina.Domain.Panels;
+using Mkafeina.Domain.Panels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
 	public abstract class Dashboard
 	{
+		[DllImport("kernel32.dll", ExactSpelling = true)]
+		private static extern IntPtr GetConsoleWindow();
+
+		private static IntPtr ThisConsole = GetConsoleWindow();
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
 		private const string LOG = "log";
 
 		protected long _logCounter = 0;
@@ -22,6 +31,7 @@ namespace Mkfeina.Domain
 
 		protected Dashboard()
 		{
+			ShowWindow(ThisConsole, 3);
 			_commandInterpreter = AppDomain.CurrentDomain.UnityContainer().Resolve<CommandInterpreter>();
 			var task = _commandInterpreter.KeyListenerTask; // gambiarrinha
 		}

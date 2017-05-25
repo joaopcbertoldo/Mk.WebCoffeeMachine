@@ -1,3 +1,3 @@
-﻿namespace Mkfeina.Domain.Panels
+﻿namespace Mkafeina.Domain.Panels
 {
 }

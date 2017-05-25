@@ -96,9 +96,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mkafeina.Domain\Mkfeina.Domain.csproj">
+    <ProjectReference Include="..\Mkafeina.Domain\Mkafeina.Domain.csproj">
       <Project>{505029b6-8c04-42c9-b471-c308de925290}</Project>
-      <Name>Mkfeina.Domain</Name>
+      <Name>Mkafeina.Domain</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

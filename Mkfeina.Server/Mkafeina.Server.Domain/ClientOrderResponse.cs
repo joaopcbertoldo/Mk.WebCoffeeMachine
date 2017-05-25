@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Server.Domain
+﻿namespace Mkafeina.Server.Domain
 {
 	public class CustomerOrderResponse
 	{

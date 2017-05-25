@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class AppSettingsCache
 	{

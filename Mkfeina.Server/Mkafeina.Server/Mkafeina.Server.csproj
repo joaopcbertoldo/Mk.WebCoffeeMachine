@@ -54,6 +54,7 @@
     <Reference Include="Microsoft.Owin.StaticFiles, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Owin.StaticFiles.3.1.0\lib\net45\Microsoft.Owin.StaticFiles.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Practices.Unity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6d32ff45e0ccc69f" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
@@ -114,14 +115,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppConfig.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Controllers\CustomerController.cs" />
     <Compile Include="Controllers\CoffeeMachineController.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServerConsole.cs" />
+    <Compile Include="AppConfig.cs" />
+    <Compile Include="CommandInterpreter.cs" />
+    <Compile Include="Dashboard.cs" />
+    <Compile Include="PanelLineBuilder.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -129,21 +132,15 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Views\Index.cshtml">
-      <SubType>Component</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Views\Layout.cshtml">
-      <SubType>Component</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mkafeina.Domain\Mkfeina.Domain.csproj">
+    <ProjectReference Include="..\Mkafeina.Domain\Mkafeina.Domain.csproj">
       <Project>{505029b6-8c04-42c9-b471-c308de925290}</Project>
-      <Name>Mkfeina.Domain</Name>
+      <Name>Mkafeina.Domain</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Mkafeina.Server.Domain\Mkfeina.Server.Domain.csproj">
+    <ProjectReference Include="..\Mkafeina.Server.Domain\Mkafeina.Server.Domain.csproj">
       <Project>{8ce2d7bf-d1c7-4f38-bf77-d4fdb48646bd}</Project>
-      <Name>Mkfeina.Server.Domain</Name>
+      <Name>Mkafeina.Server.Domain</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

@@ -1,6 +1,6 @@
-﻿using Mkfeina.CoffeeMachineSimulator;
-using Mkfeina.Domain;
-using Mkfeina.Domain.ServerArduinoComm;
+﻿using Mkafeina.CoffeeMachineSimulator;
+using Mkafeina.Domain;
+using Mkafeina.Domain.ServerArduinoComm;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -11,10 +11,10 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Mkfeina.Domain.ServerArduinoComm.Constants;
-using static Mkfeina.Simulator.Constants;
+using static Mkafeina.Domain.ServerArduinoComm.Constants;
+using static Mkafeina.Simulator.Constants;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class FakeCoffeMachine
 	{

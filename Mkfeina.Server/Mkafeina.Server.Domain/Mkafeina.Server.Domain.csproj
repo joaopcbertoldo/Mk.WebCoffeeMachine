@@ -55,9 +55,10 @@
   <ItemGroup>
     <Compile Include="ClientOrderResponse.cs" />
     <Compile Include="ClientOrderRequest.cs" />
-    <Compile Include="CoffeeMachineProxy.cs" />
-    <Compile Include="CoffeeMachineProxyOffsets.cs" />
-    <Compile Include="CoffeeMachineProxyState.cs" />
+    <Compile Include="CMProxy.cs" />
+    <Compile Include="CMProxyHub.cs" />
+    <Compile Include="CMProxyOffsets.cs" />
+    <Compile Include="CMProxyState.cs" />
     <Compile Include="EmailSender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -66,9 +67,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mkafeina.Domain\Mkfeina.Domain.csproj">
+    <ProjectReference Include="..\Mkafeina.Domain\Mkafeina.Domain.csproj">
       <Project>{505029b6-8c04-42c9-b471-c308de925290}</Project>
-      <Name>Mkfeina.Domain</Name>
+      <Name>Mkafeina.Domain</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

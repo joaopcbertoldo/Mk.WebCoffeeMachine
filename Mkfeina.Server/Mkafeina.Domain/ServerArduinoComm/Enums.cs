@@ -4,6 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain.ServerArduinoComm
+namespace Mkafeina.Domain.ServerArduinoComm
 {
 }

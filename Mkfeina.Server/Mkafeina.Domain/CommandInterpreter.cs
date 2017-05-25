@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Mkfeina.Domain
+namespace Mkafeina.Domain
 {
 	public abstract class CommandInterpreter
 	{

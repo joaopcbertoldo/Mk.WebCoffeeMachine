@@ -1,4 +1,4 @@
-﻿namespace Mkfeina.Domain
+﻿namespace Mkafeina.Domain
 {
     public static class Constants
     {

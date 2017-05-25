@@ -1,11 +1,11 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkfeina.CoffeeMachineSimulator;
-using Mkfeina.Domain;
-using Mkfeina.Domain.Panels;
+using Mkafeina.CoffeeMachineSimulator;
+using Mkafeina.Domain;
+using Mkafeina.Domain.Panels;
 using System;
-using static Mkfeina.Domain.Extentions;
+using static Mkafeina.Domain.Extentions;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	public class Program
 	{
@@ -18,7 +18,7 @@ namespace Mkfeina.Simulator
 			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AppConfig>(SimulatorAppConfig.Singleton);
 
 			SimulatorAppConfig.Singleton.ReloadConfigs();
-			CookBook.Singleton.LoadRecipes(wait: true);
+			CookBook.Sgt.LoadRecipes(wait: true);
 
 			SimulatorDashboard.Singleton.Title = SimulatorAppConfig.Singleton.SimulatorUniqueName;
 			SimulatorDashboard.Singleton.CreatePanels(SimulatorAppConfig.Singleton.PanelsConfigs);

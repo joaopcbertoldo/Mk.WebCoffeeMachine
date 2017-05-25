@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Mkfeina.Domain;
-using static Mkfeina.Simulator.Constants;
-using Mkfeina.CoffeeMachineSimulator;
+using Mkafeina.Domain;
+using static Mkafeina.Simulator.Constants;
+using Mkafeina.CoffeeMachineSimulator;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
     public class SimulatorCommandInterpreter : CommandInterpreter
     {
@@ -14,14 +14,14 @@ namespace Mkfeina.Simulator
                 switch (key.Key) {
                     case ConsoleKey.Tab:
                         if ((key.Modifiers & ConsoleModifiers.Shift) != 0)
-                            CookBook.Singleton.PreviousRecipe();
+                            CookBook.Sgt.PreviousRecipe();
                         else
-							CookBook.Singleton.NextRecipe();
+							CookBook.Sgt.NextRecipe();
                         break;
 
                     case ConsoleKey.Enter:
-                        SimulatorDashboard.Singleton.LogAsync($"Keyboard <<{CookBook.Singleton.SelectedRecipeName()}>> order.");
-                        FakeCoffeMachine.Singleton.MakeCoffee(CookBook.Singleton.SelectedRecipe());
+                        SimulatorDashboard.Singleton.LogAsync($"Keyboard <<{CookBook.Sgt.SelectedRecipeName()}>> order.");
+                        FakeCoffeMachine.Singleton.MakeCoffee(CookBook.Sgt.SelectedRecipe());
                         break;
 
                     case ConsoleKey.LeftArrow:
@@ -46,7 +46,7 @@ namespace Mkfeina.Simulator
                         break;
 
                     case ConsoleKey.F4:
-						CookBook.Singleton.LoadRecipes();
+						CookBook.Sgt.LoadRecipes();
                         break;
 
                     case ConsoleKey.OemPeriod: // >

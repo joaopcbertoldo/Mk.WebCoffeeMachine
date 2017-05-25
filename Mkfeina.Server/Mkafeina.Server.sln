@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.12
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkfeina.Domain", "Mkafeina.Domain\Mkfeina.Domain.csproj", "{505029B6-8C04-42C9-B471-C308DE925290}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkafeina.Domain", "Mkafeina.Domain\Mkafeina.Domain.csproj", "{505029B6-8C04-42C9-B471-C308DE925290}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkfeina.Server.Domain", "Mkafeina.Server.Domain\Mkfeina.Server.Domain.csproj", "{8CE2D7BF-D1C7-4F38-BF77-D4FDB48646BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkafeina.Server.Domain", "Mkafeina.Server.Domain\Mkafeina.Server.Domain.csproj", "{8CE2D7BF-D1C7-4F38-BF77-D4FDB48646BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkfeina.Simulator", "Mkafeina.CoffeeMachineSimulator\Mkfeina.Simulator.csproj", "{13B6ECFF-1B62-41A6-B11C-70B7BFCC5800}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkafeina.Simulator", "Mkafeina.CoffeeMachineSimulator\Mkafeina.Simulator.csproj", "{13B6ECFF-1B62-41A6-B11C-70B7BFCC5800}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkfeina.Server", "Mkafeina.Server\Mkfeina.Server.csproj", "{44CDEF8B-280D-424D-920F-5DD0C8D3C2E3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkafeina.Server", "Mkafeina.Server\Mkafeina.Server.csproj", "{44CDEF8B-280D-424D-920F-5DD0C8D3C2E3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mkafeina.Website", "Mkafeina.Website\Mkafeina.Website.csproj", "{71662C64-DC15-4AFD-AE66-9128122DBB6C}"
 EndProject
