@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Mkafeina.Domain.Dashboard.Panels;
+using System;
 using static Mkafeina.Server.Constants;
 
 namespace Mkafeina.Server
 {
-	public class PanelLineBuilder : Mkafeina.Domain.Panels.PanelLineBuilder
+	public class PanelLineBuilder : AbstractPanelLineBuilder
 	{
 		public override string Build(string lineName)
 		{
@@ -32,6 +33,11 @@ namespace Mkafeina.Server
 				default:
 					throw new NotImplementedException();
 			}
+		}
+
+		public override string UpdateEventHandler(string lineName, object caller)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

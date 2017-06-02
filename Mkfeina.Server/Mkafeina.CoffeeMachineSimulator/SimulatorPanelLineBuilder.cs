@@ -1,12 +1,11 @@
 ﻿using Mkafeina.CoffeeMachineSimulator;
-using Mkafeina.Domain;
-using Mkafeina.Domain.Panels;
+using Mkafeina.Domain.Dashboard.Panels;
 using System;
 using static Mkafeina.Simulator.Constants;
 
 namespace Mkafeina.Simulator
 {
-	public class SimulatorPanelLineBuilder : PanelLineBuilder
+	public class SimulatorPanelLineBuilder : AbstractPanelLineBuilder
 	{
 		public override string Build(string lineName)
 		{
@@ -22,7 +21,7 @@ namespace Mkafeina.Simulator
 
 				case PANEL_LINE_UNIQUE_NAME:
 					return $"Unique name : {SimulatorAppConfig.Singleton.SimulatorUniqueName}";
-					
+
 				case PANEL_LINE_REGISTRATION:
 					return FakeCoffeMachine.Singleton.IsRegistered ? "Registration: OK" : "Registration: ---";
 
@@ -43,8 +42,8 @@ namespace Mkafeina.Simulator
 					else
 						return $"Selected ingredient : ERROR";
 
-				case PANEL_LINE_SELECTED_RECIPE:
-					return $"Selected recipe : {CookBook.Sgt.SelectedRecipeName()}";
+				//case PANEL_LINE_SELECTED_RECIPE:
+				//	return $"Selected recipe : {CookBook.Sgt.SelectedRecipeName()}";
 
 				#endregion Status Panel Lines
 
@@ -104,6 +103,11 @@ namespace Mkafeina.Simulator
 				default:
 					throw new NotImplementedException();
 			}
+		}
+
+		public override string UpdateEventHandler(string lineName, object caller)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

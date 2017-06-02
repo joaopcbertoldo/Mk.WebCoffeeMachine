@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Mkafeina.Domain
+namespace Mkafeina.Domain.Entities
 {
 	public class Recipe : IEnumerable<KeyValuePair<char, int>>
 	{

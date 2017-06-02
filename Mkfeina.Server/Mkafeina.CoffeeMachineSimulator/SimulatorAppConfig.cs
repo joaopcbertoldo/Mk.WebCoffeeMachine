@@ -1,12 +1,11 @@
 ﻿using Mkafeina.Domain;
-using Mkafeina.Domain.Panels;
 using System.Linq;
 using System.Net.NetworkInformation;
 using static Mkafeina.Simulator.Constants;
 
 namespace Mkafeina.Simulator
 {
-	public class SimulatorAppConfig : AppConfig
+	public class SimulatorAppConfig : AbstractAppConfig
 	{
 		private const string
 			STATUS = "status",
@@ -36,11 +35,13 @@ namespace Mkafeina.Simulator
 
 		public string SimulatorUniqueName { get => _cache[APP_CONFIG_SIMULATOR_UNIQUE_NAME]; }
 
-		public string SimulatorMac { get => (
-												from nic in NetworkInterface.GetAllNetworkInterfaces()
-												where nic.OperationalStatus == OperationalStatus.Up
-												select nic.GetPhysicalAddress().ToString()
-											).FirstOrDefault(); }
+		public string SimulatorMac {
+			get => (
+					   from nic in NetworkInterface.GetAllNetworkInterfaces()
+					   where nic.OperationalStatus == OperationalStatus.Up
+					   select nic.GetPhysicalAddress().ToString()
+				   ).FirstOrDefault();
+		}
 
 		public string SimulatorIp { get => _cache[APP_CONFIG_SIMULATOR_IP]; }
 
@@ -64,13 +65,13 @@ namespace Mkafeina.Simulator
 
 		#region Panels Configs
 
-		public PanelConfig StatusPanelConfig { get => new PanelConfig(PanelTitle(STATUS), 0, 0, PanelWidth(STATUS), PanelHeight(STATUS), PanelColumns(STATUS)); }
-
-		public PanelConfig ConfigsPanelConfig { get => new PanelConfig(PanelTitle(CONFIGS), 0, PanelHeight(STATUS) + VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(CONFIGS), PanelHeight(CONFIGS), PanelColumns(CONFIGS)); }
-
-		public PanelConfig CommandsPanelConfig { get => new PanelConfig(PanelTitle(COMMANDS), 0, PanelHeight(CONFIGS) + PanelHeight(STATUS) + 2 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(COMMANDS), PanelHeight(COMMANDS), PanelColumns(COMMANDS)); }
-
-		public PanelConfig LogPanelConfig { get => new PanelConfig(PanelTitle(LOG), 0, PanelHeight(COMMANDS) + PanelHeight(CONFIGS) + PanelHeight(STATUS) + 3 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(LOG), PanelHeight(LOG), PanelColumns(LOG)); }
+		//public PanelConfig StatusPanelConfig { get => new PanelConfig(PanelTitle(STATUS), 0, 0, PanelWidth(STATUS), PanelHeight(STATUS), PanelColumns(STATUS)); }
+		//
+		//public PanelConfig ConfigsPanelConfig { get => new PanelConfig(PanelTitle(CONFIGS), 0, PanelHeight(STATUS) + VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(CONFIGS), PanelHeight(CONFIGS), PanelColumns(CONFIGS)); }
+		//
+		//public PanelConfig CommandsPanelConfig { get => new PanelConfig(PanelTitle(COMMANDS), 0, PanelHeight(CONFIGS) + PanelHeight(STATUS) + 2 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(COMMANDS), PanelHeight(COMMANDS), PanelColumns(COMMANDS)); }
+		//
+		//public PanelConfig LogPanelConfig { get => new PanelConfig(PanelTitle(LOG), 0, PanelHeight(COMMANDS) + PanelHeight(CONFIGS) + PanelHeight(STATUS) + 3 * VERTICAL_MARGIN_BETWEEN_PANELS, PanelWidth(LOG), PanelHeight(LOG), PanelColumns(LOG)); }
 
 		#endregion Panels Configs
 
@@ -81,7 +82,7 @@ namespace Mkafeina.Simulator
 #warning add standart timeout no dashboard
 		public int StandardTimeout { get => _cache[APP_CONFIG_STANDARD_TIMEOUT].ParseToInt(); }
 
-		#endregion Server
+		#endregion Server/Communication
 
 		#region Registration Configs
 
@@ -98,6 +99,7 @@ namespace Mkafeina.Simulator
 		#endregion Registration Configs
 
 		#region Report Configs
+
 #warning mudar nome de report status para report
 		public string ReportUrl { get => $"http://{ServerAddress}/{ReportRoute}"; }
 
@@ -105,7 +107,7 @@ namespace Mkafeina.Simulator
 #warning excluir isso
 		public int ReportTimeout { get => _cache[APP_CONFIG_REPORT_STATUS_TIMEOUT].ParseToInt(); }
 
-		#endregion Report Status Configs
+		#endregion Report Configs
 
 		#region Order Configs
 

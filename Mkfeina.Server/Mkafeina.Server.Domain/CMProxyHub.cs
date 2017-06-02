@@ -35,7 +35,7 @@ namespace Mkfeina.Server.Domain
 		{
 			if (!_proxies.ContainsKey(mac))
 				return RegistrationStatusEnum.NotRegistered;
-			else if (!_proxies[mac].RegistrationIsAccepted)
+			else if (!_proxies[mac].State.RegistrationIsAccepted)
 				return RegistrationStatusEnum.RegistrationNotAccepted;
 			else
 				return RegistrationStatusEnum.Registered;
@@ -45,8 +45,8 @@ namespace Mkfeina.Server.Domain
 			=> RegistrationStatus(mac) == RegistrationStatusEnum.Registered;
 
 		public bool IsRegisteredByUniqueName(string uniqueName)
-			=> _proxies.Any(kv => kv.Value.UniqueName == uniqueName) &&
-			   _proxies.First(kv => kv.Value.UniqueName == uniqueName).Value.RegistrationIsAccepted;
+			=> _proxies.Any(kv => kv.Value.State.UniqueName == uniqueName) &&
+			   _proxies.First(kv => kv.Value.State.UniqueName == uniqueName).Value.State.RegistrationIsAccepted;
 
 		public CMProxy GetProxy(string mac)
 		{
@@ -56,7 +56,7 @@ namespace Mkfeina.Server.Domain
 		}
 
 		public CMProxy GetProxyByUniqueName(string uniqueName)
-			=> _proxies.FirstOrDefault(kv => kv.Value.UniqueName == uniqueName).Value;
+			=> _proxies.FirstOrDefault(kv => kv.Value.State.UniqueName == uniqueName).Value;
 
 		public RegistrationResponse HandleRegistrationRequest(RegistrationRequest request)
 		{
@@ -87,10 +87,10 @@ namespace Mkfeina.Server.Domain
 			{
 				var mac = request.Mac;
 				if (_proxies.ContainsKey(mac))
-					return _ardResponseFac.RegistrationAttemptWithMacAlreadyExisting(alreadyRegistered: _proxies[mac].RegistrationIsAccepted);
+					return _ardResponseFac.RegistrationAttemptWithMacAlreadyExisting(alreadyRegistered: _proxies[mac].State.RegistrationIsAccepted);
 
 				string trueUniqueName = request.UniqueName;
-				while (_proxies.Any(kv => kv.Value.UniqueName == request.UniqueName))
+				while (_proxies.Any(kv => kv.Value.State.UniqueName == request.UniqueName))
 					trueUniqueName = trueUniqueName.GenerateNameVersion();
 
 				var newProxy = CMProxy.CreateNew(trueUniqueName, request);
@@ -107,11 +107,11 @@ namespace Mkfeina.Server.Domain
 			{
 				if (_proxies.ContainsKey(request.Mac))
 				{
-					if (_proxies[request.Mac].RegistrationIsAccepted)
+					if (_proxies[request.Mac].State.RegistrationIsAccepted)
 						return _ardResponseFac.RegistrationAcceptanceButIsAlreadyAccepted();
 					else
 					{
-						_proxies[request.Mac].RegistrationIsAccepted = true;
+						_proxies[request.Mac].State.RegistrationIsAccepted = true;
 						return _ardResponseFac.RegistrationAcceptanceOK();
 					}
 				}

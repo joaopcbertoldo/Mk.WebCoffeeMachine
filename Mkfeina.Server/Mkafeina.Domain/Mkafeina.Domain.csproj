@@ -108,22 +108,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettingsCache.cs" />
-    <Compile Include="AppConfig.cs" />
-    <Compile Include="CommandInterpreter.cs" />
+    <Compile Include="AbstractAppConfig.cs" />
+    <Compile Include="Dashboard\AbstractCommandInterpreter.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="Dashboard.cs" />
-    <Compile Include="Panels\PanelLineBuilder.cs" />
-    <Compile Include="Panels\Enums.cs" />
-    <Compile Include="Panels\Constants.cs" />
-    <Compile Include="Panels\ConsoleSpaceManager.cs" />
-    <Compile Include="Panels\Panel.cs" />
-    <Compile Include="Panels\PanelConfig.cs" />
-    <Compile Include="Panels\PanelFactory.cs" />
+    <Compile Include="Dashboard\AbstractDashboard.cs" />
+    <Compile Include="Dashboard\Panels\ConsoleWriter.cs" />
+    <Compile Include="Dashboard\Panels\AbstractPanelLineBuilder.cs" />
+    <Compile Include="Dashboard\Panels\Constants.cs" />
+    <Compile Include="Dashboard\Panels\ConsoleSpaceManager.cs" />
+    <Compile Include="Dashboard\Panels\Panel.cs" />
+    <Compile Include="Dashboard\Panels\PanelConfig.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Extentions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CookBook.cs" />
-    <Compile Include="Recipe.cs" />
+    <Compile Include="Entities\CookBook.cs" />
+    <Compile Include="Entities\Recipe.cs" />
     <Compile Include="ServerArduinoComm\RegistrationRequest.cs" />
     <Compile Include="ServerArduinoComm\Constants.cs" />
     <Compile Include="ServerArduinoComm\Enums.cs" />
@@ -138,9 +137,7 @@
     <Compile Include="ServerWebApi\Constants.cs" />
     <Compile Include="ServerWebApi\Enums.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Entities\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />

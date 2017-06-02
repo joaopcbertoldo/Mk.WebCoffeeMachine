@@ -2,7 +2,7 @@
 {
 	public class CMProxyOffsets
 	{
-		public static int AdjustSignal(float signal, string name)
+		public int AdjustSignal(float signal, string name)
 		{
 			var empty = (float)GetType().GetField(name + "EmptyOffset").GetValue(this);
 			var full = (float)GetType().GetField(name + "FullOffset").GetValue(this);

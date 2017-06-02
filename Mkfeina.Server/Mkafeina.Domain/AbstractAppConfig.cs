@@ -1,20 +1,26 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkafeina.Domain.Panels;
+using Mkafeina.Domain.Dashboard.Panels;
+using Mkafeina.Domain.Entities;
 using Mkafeina.Simulator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using static Mkafeina.Domain.Constants;
 
 namespace Mkafeina.Domain
 {
-	public abstract class AppConfig
+	public abstract class AbstractAppConfig
 	{
+		private const string
+			RECIPES = "recipes",
+			INGREDIENTS = "ingredients";
+
 		protected AppSettingsCache _cache = new AppSettingsCache();
 
-		public event Action<string> ConfigChangeEvent;
+		public event Action<string,object> ConfigChangeEvent;
 
-		protected AppConfig()
+		protected AbstractAppConfig()
 		{
 			ReloadConfigs();
 		}
@@ -23,10 +29,10 @@ namespace Mkafeina.Domain
 		{
 			_cache.RefreshCache();
 			foreach (var key in _cache.AllKeys)
-				ConfigChangeEvent?.Invoke(key);
+				ConfigChangeEvent?.Invoke(key,this);
 		}
 
-		protected void OnConfigChangeEvent(string obj) => ConfigChangeEvent?.Invoke(obj);
+		protected void OnConfigChangeEvent(string obj) => ConfigChangeEvent?.Invoke(obj,this);
 
 		#region Panels Stuff
 
@@ -35,22 +41,22 @@ namespace Mkafeina.Domain
 		public IDictionary<string, PanelConfig> PanelsConfigs {
 			get {
 				var configs = new Dictionary<string, PanelConfig>();
-				var appConfigType = AppDomain.CurrentDomain.UnityContainer().Resolve<AppConfig>().GetType();
+				var appConfigType = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>().GetType();
 				foreach (var name in PanelsNames)
 					configs.Add(name, (PanelConfig)appConfigType.GetProperties()
 																.First(
 								prop => prop.Name == name.FirstLetterToUpper() + APP_CONFIG_PANEL_CONFIG_PROPERTY_TERMINATION
 																 ).GetMethod
 																  .Invoke(this, null));
-					return configs;
+				return configs;
 			}
 		}
 
 		public string PanelTitle(string panelName)
 			=> _cache[$"{panelName}.{APP_CONFIG_PANEL_TITLE_PROP}"];
 
-		public int PanelHeight(string panelName)
-			=> _cache[$"{panelName}.{APP_CONFIG_PANEL_HEIGHT_PROP}"].ParseToInt();
+		public int PanelNLines(string panelName)
+			=> _cache[$"{panelName}.{APP_CONFIG_PANEL_NLINES_PROP}"].ParseToInt();
 
 		public int PanelWidth(string panelName)
 		{
@@ -73,5 +79,35 @@ namespace Mkafeina.Domain
 		}
 
 		#endregion Panels Stuff
+
+		public IEnumerable<string> LoadRecipesOnCookBookAsync(CookBook cookbook, bool wait = false)
+		{
+			_cache.RefreshCache();
+			var recipesNames = _cache[RECIPES].SplitValueSeparatedBy(",");
+			var ingredients = _cache[INGREDIENTS].SplitValueSeparatedBy(",");
+			var task = Task.Factory.StartNew(() =>
+			{
+				lock (cookbook)
+				{
+					foreach (var name in recipesNames)
+					{
+						var recipe = new Recipe() { Name = name };
+						foreach (var ingredient in ingredients)
+						{
+							var portion = _cache[$"{name}.{ingredient}"]?.ParseToInt();
+							if (portion == null)
+								continue;
+							recipe.AddIngredient(ingredient.ToCharArray()[0], portion.Value);
+						}
+						cookbook.AddRecipe(recipe);
+					}
+				}
+			});
+
+			if (wait)
+				task.Wait();
+
+			return recipesNames;
+		}
 	}
 }

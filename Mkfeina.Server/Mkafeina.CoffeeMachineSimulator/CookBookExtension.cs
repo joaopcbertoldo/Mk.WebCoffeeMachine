@@ -1,4 +1,5 @@
 ﻿using Mkafeina.Domain;
+using Mkafeina.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,6 @@
 ﻿using Mkafeina.CoffeeMachineSimulator;
 using Mkafeina.Domain;
+using Mkafeina.Domain.Entities;
 using Mkafeina.Domain.ServerArduinoComm;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

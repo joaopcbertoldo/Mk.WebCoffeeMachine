@@ -1,12 +1,12 @@
-﻿using Mkafeina.Domain;
+﻿using Mkafeina.Domain.Dashboard;
 
 namespace Mkafeina.Simulator
 {
-	public class SimulatorDashboard : Dashboard
+	public class SimulatorDashboard : AbstractDashboard
 	{
-		private static Dashboard __singleton;
+		private static SimulatorDashboard __singleton;
 
-		public static Dashboard Singleton {
+		public static SimulatorDashboard Singleton {
 			get {
 				if (__singleton == null)
 					__singleton = new SimulatorDashboard();

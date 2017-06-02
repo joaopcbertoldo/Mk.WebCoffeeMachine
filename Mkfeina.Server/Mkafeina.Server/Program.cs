@@ -1,6 +1,8 @@
 ﻿using Microsoft.Owin.Hosting;
 using Microsoft.Practices.Unity;
 using Mkafeina.Domain;
+using Mkafeina.Domain.Dashboard;
+using Mkafeina.Domain.Dashboard.Panels;
 using System;
 
 namespace Mkafeina.Server
@@ -9,18 +11,19 @@ namespace Mkafeina.Server
 	{
 		private static void Main(string[] args)
 		{
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<Mkafeina.Domain.CommandInterpreter, CommandInterpreter>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<Mkafeina.Domain.Panels.PanelLineBuilder, PanelLineBuilder>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<Mkafeina.Domain.AppConfig>(AppConfig.Sgt);
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractCommandInterpreter, CommandInterpreter>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractPanelLineBuilder, PanelLineBuilder>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractAppConfig>(AppConfig.Sgt);
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractDashboard>(Dashboard.Sgt);
 
 			AppConfig.Sgt.ReloadConfigs();
-			CookBook.Sgt.LoadRecipes(wait: true);
+			//CookBook.Sgt.LoadRecipes(wait: true);
 
 			Dashboard.Sgt.Title = AppConfig.Sgt.ServerName;
 			Dashboard.Sgt.CreatePanels(AppConfig.Sgt.PanelsConfigs);
 			Dashboard.Sgt.AddFixedLinesToPanels(AppConfig.Sgt.PanelsLinesCollections);
 
-			AppConfig.Sgt.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandler("configs");
+			AppConfig.Sgt.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel("configs");
 
 			var serverAddress = AppConfig.Sgt.ServerAddress;
 			StartOptions options = new StartOptions();

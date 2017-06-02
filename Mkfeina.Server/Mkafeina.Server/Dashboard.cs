@@ -1,6 +1,8 @@
-﻿namespace Mkafeina.Server
+﻿using Mkafeina.Domain.Dashboard;
+
+namespace Mkafeina.Server
 {
-	public class Dashboard : Mkafeina.Domain.Dashboard
+	public class Dashboard : AbstractDashboard
 	{
 		private static Dashboard __sgt;
 

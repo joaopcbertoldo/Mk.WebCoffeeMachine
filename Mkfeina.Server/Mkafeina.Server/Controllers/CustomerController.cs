@@ -1,4 +1,5 @@
 ﻿using Mkafeina.Server.Domain;
+using Mkfeina.Server.Domain;
 using RazorEngine;
 using System.Net.Http;
 using System.Web.Http;
@@ -12,8 +13,8 @@ namespace Mkafeina.Server.Controllers
 #warning evoluir para ihttpactionresult
 		public CustomerOrderResponse Order([FromBody] CustomerOrderRequest request)
 		{
-			if (CMProxy.MachineIsRegistered(request.MachineUniqueName))
-				return CMProxy.GetProxyByUniqueName(request.MachineUniqueName).HandleClientOrderRequest(request);
+			if (CMProxyHub.Sgt.IsRegisteredByUniqueName(request.MachineUniqueName))
+				return CMProxyHub.Sgt.GetProxyByUniqueName(request.MachineUniqueName).HandleClientOrderRequest(request);
 			else
 				return new CustomerOrderResponse()
 				{

@@ -1,4 +1,6 @@
-﻿using Mkafeina.Domain.ServerArduinoComm;
+﻿using Mkafeina.Domain;
+using Mkafeina.Domain.Entities;
+using Mkafeina.Domain.ServerArduinoComm;
 
 namespace Mkfeina.Domain.ServerArduinoComm
 {
@@ -60,6 +62,39 @@ namespace Mkfeina.Domain.ServerArduinoComm
 			=> new ReportResponse()
 			{
 				Command = (int)CommandEnum.DisablingConfirmed,
+				ResponseCode = (int)ResponseCodeEnum.OK
+			};
+
+		public ReportResponse ReportDisable()
+			=> new ReportResponse()
+			{
+				Command = (int)CommandEnum.Disable,
+				ResponseCode = (int)ResponseCodeEnum.OK
+			};
+
+		public OrderResponse OrderGiverAnOrderOK(uint orderReference, Recipe recipeToMake)
+			=> new OrderResponse()
+			{
+				ResponseCode = (int)ResponseCodeEnum.OK,
+				OrderReference = orderReference,
+				Recipe = recipeToMake.ToString()
+			};
+
+		public OrderResponse OrderInvalidRequest()
+			=> new OrderResponse()
+			{
+				ResponseCode = (int)ResponseCodeEnum.InvalidRequest
+			};
+
+		public OrderResponse OrderProcessingWilStartOK()
+			=> new OrderResponse()
+			{
+				ResponseCode = (int)ResponseCodeEnum.OK
+			};
+
+		public OrderResponse OrderReadyOK()
+			=> new OrderResponse()
+			{
 				ResponseCode = (int)ResponseCodeEnum.OK
 			};
 	}

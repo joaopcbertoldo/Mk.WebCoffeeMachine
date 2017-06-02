@@ -1,7 +1,7 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkafeina.CoffeeMachineSimulator;
 using Mkafeina.Domain;
-using Mkafeina.Domain.Panels;
+using Mkafeina.Domain.Dashboard;
+using Mkafeina.Domain.Dashboard.Panels;
 using System;
 using static Mkafeina.Domain.Extentions;
 
@@ -13,22 +13,22 @@ namespace Mkafeina.Simulator
 
 		private static void Main(string[] args)
 		{
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<CommandInterpreter, SimulatorCommandInterpreter>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<PanelLineBuilder, SimulatorPanelLineBuilder>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AppConfig>(SimulatorAppConfig.Singleton);
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractCommandInterpreter, SimulatorCommandInterpreter>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractPanelLineBuilder, SimulatorPanelLineBuilder>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractAppConfig>(SimulatorAppConfig.Singleton);
 
-			SimulatorAppConfig.Singleton.ReloadConfigs();
-			CookBook.Sgt.LoadRecipes(wait: true);
+			//SimulatorAppConfig.Singleton.ReloadConfigs();
+			//CookBook.Sgt.LoadRecipes(wait: true);
 
-			SimulatorDashboard.Singleton.Title = SimulatorAppConfig.Singleton.SimulatorUniqueName;
-			SimulatorDashboard.Singleton.CreatePanels(SimulatorAppConfig.Singleton.PanelsConfigs);
-			SimulatorDashboard.Singleton.AddFixedLinesToPanels(SimulatorAppConfig.Singleton.PanelsLinesCollections);
+			//SimulatorDashboard.Singleton.Title = SimulatorAppConfig.Singleton.SimulatorUniqueName;
+			//SimulatorDashboard.Singleton.CreatePanels(SimulatorAppConfig.Singleton.PanelsConfigs);
+			//SimulatorDashboard.Singleton.AddFixedLinesToPanels(SimulatorAppConfig.Singleton.PanelsLinesCollections);
 
-			FakeCoffeMachine.Singleton.StatusChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
-			CookBookExtension.SelectedRecipeChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
-			SimulatorAppConfig.Singleton.ConfigChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("configs");
+			//FakeCoffeMachine.Singleton.StatusChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
+			//CookBookExtension.SelectedRecipeChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
+			//SimulatorAppConfig.Singleton.ConfigChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("configs");
 
-			FakeCoffeMachine.Singleton.TurnOn();
+			//FakeCoffeMachine.Singleton.TurnOn();
 
 			while (true) { }
 		}

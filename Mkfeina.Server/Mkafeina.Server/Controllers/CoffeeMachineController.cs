@@ -35,13 +35,13 @@ namespace Mkafeina.Server.Controllers
 		public OrderResponse Order([FromBody] OrderRequest request)
 		{
 			var mac = request.Mac;
-			if (CMProxy.RegistrationStatus(mac) != RegistrationStatusEnum.Registered)
+			if (CMProxyHub.Sgt.RegistrationStatus(mac) != RegistrationStatusEnum.Registered)
 				return new OrderResponse()
 				{
 					ResponseCode = (int)ResponseCodeEnum.InvalidRequest
 				};
 			else
-				return CMProxy.GetProxy(mac).HandleOrderRequest(request);
+				return CMProxyHub.Sgt.GetProxy(mac).HandleOrderRequest(request);
 		}
 	}
 }
