@@ -14,11 +14,11 @@ namespace Mkafeina.Server.Controllers
 		{
 			//Console.Clear();
 			Console.WriteLine(Request.ToString());
-			if (_firstTestReceived)
-			{
-				_firstTestReceived = false;
-				Thread.Sleep(10000);
-			}
+			//if (_firstTestReceived)
+			//{
+			//	_firstTestReceived = false;
+			//	Thread.Sleep(10000);
+			//}
 			return Request.CreateResponse(System.Net.HttpStatusCode.OK, new { message = "Oi, quer café?" });
 		}
 	}
