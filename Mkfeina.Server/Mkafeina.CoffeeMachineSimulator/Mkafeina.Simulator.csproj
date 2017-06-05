@@ -100,6 +100,10 @@
       <Project>{505029b6-8c04-42c9-b471-c308de925290}</Project>
       <Name>Mkafeina.Domain</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Mkafeina.Server.Domain\Mkafeina.Server.Domain.csproj">
+      <Project>{8CE2D7BF-D1C7-4F38-BF77-D4FDB48646BD}</Project>
+      <Name>Mkafeina.Server.Domain</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

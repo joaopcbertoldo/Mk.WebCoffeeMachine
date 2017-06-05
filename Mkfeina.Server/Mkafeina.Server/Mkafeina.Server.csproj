@@ -130,16 +130,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
     <Compile Include="Controllers\CustomerController.cs" />
     <Compile Include="Controllers\CoffeeMachineController.cs" />
     <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AppConfig.cs" />
-    <Compile Include="CommandInterpreter.cs" />
-    <Compile Include="Dashboard.cs" />
-    <Compile Include="PanelLineBuilder.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

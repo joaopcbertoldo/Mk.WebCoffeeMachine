@@ -28,7 +28,7 @@ namespace Mkafeina.Simulator
 			//CookBookExtension.SelectedRecipeChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
 			//SimulatorAppConfig.Singleton.ConfigChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("configs");
 
-			//FakeCoffeMachine.Singleton.TurnOn();
+			FakeCoffeMachine.Singleton.TurnOn();
 
 			while (true) { }
 		}

@@ -1,0 +1,122 @@
+#define DELAY 2000
+#define BAUDRATE 115200
+
+const char format_reg100[] = "{\"registrationMessage\":100,\"uniqueName\":\"%s\",\"coffeeEmptyOffset\":%d,\"coffeeFullOffset\":%d,\"waterEmptyOffset\":%d,\"waterFullOffset\":%d,\"milkEmptyOffset\":%d,\"milkFullOffset\":%d,\"sugarEmptyOffset\":%d,\"sugarFullOffset\":%d,\"mac\":\"%s\"}";
+const char format_reg101[] = "{\"registrationMessage\":101,\"mac\":\"%s\"}";
+const char format_reg200[] = "{\"registrationMessage\":200,\"coffeeEmptyOffset\":%d,\"coffeeFullOffset\":%d,\"waterEmptyOffset\":%d,\"waterFullOffset\":%d,\"milkEmptyOffset\":%d,\"milkFullOffset\":%d,\"sugarEmptyOffset\":%d,\"sugarFullOffset\":%d,\"mac\":\"%s\"}";
+const char format_reg300[] = "{\"registrationMessage\":300,\"mac\":\"%s\"}";
+
+const char format_rep100[] = "{\"reportMessage\":100,\"isEnabled\":%s,\"coffeeLevel\":%f\"waterLevel\":%f,\"milkLevel\":%f,\"sugarLevel\":%f,\"mac\":\"%s\"}";
+   
+char * MakeRegistrationRequest(int registrationMessage, char * uniqueName, int coffeeEmptyOffset, int coffeeFullOffset, int waterEmptyOffset, int waterFullOffset, int milkEmptyOffset, int milkFullOffset, int sugarEmptyOffset, int sugarFullOffset, char * mac) {  
+  char buf[350];
+ 
+  switch(registrationMessage) {
+    case 100: 
+    sprintf(buf, format_reg100, uniqueName, coffeeEmptyOffset, coffeeFullOffset, waterEmptyOffset, waterFullOffset, milkEmptyOffset, milkFullOffset, sugarEmptyOffset, sugarFullOffset, mac);
+    break;
+      
+    case 101:
+    sprintf(buf, format_reg101, mac);
+    break;
+      
+    case 200:
+    sprintf(buf, format_reg200, coffeeEmptyOffset, coffeeFullOffset, waterEmptyOffset, waterFullOffset, milkEmptyOffset, milkFullOffset, sugarEmptyOffset, sugarFullOffset, mac);
+    break;
+    
+    case 300:
+    sprintf(buf, format_reg300, mac);
+    break;
+      
+  }
+  
+  return buf;
+}
+
+char * MakeReportRequest(int registrationMessage, bool isEnabled, float coffeeLevel, float waterLevel, float milkLevel, float sugarLevel, String mac) {  
+  char buf[200];
+  
+  char macBuf[mac.length()];
+  mac.toCharArray(macBuf, mac.length());
+  
+  switch(registrationMessage) {
+    case 100: 
+      if (isEnabled){
+        sprintf(buf, format_rep100, "true", coffeeLevel, waterLevel, milkLevel, sugarLevel, macBuf);
+      }
+      else {
+        sprintf(buf, format_rep100, "false", coffeeLevel, waterLevel, milkLevel, sugarLevel, macBuf);
+      }
+    break;     
+  }
+  
+  return buf;
+}
+
+void setup(){
+Serial.begin(BAUDRATE);
+Serial.println("A");
+}
+
+void loop() {
+Serial.println("B");
+
+// RegistrationRequest --> attempt (100)
+// Sequencia dos números a serem preenchidos: registrationMessage (INT), uniqueName (str), coffeeEmptyOffset (INT), coffeeFullOffset (INT), waterEmptyOffset (INT), waterFullOffset (INT), milkEmptyOffset(INT), milkFullOffset(INT), sugarEmptyOffset (INT), sugarFullOffset(INT), mac (str)
+int registrationMessage = 100;
+char * uniqueName = "CAFETEIRA DA MAIRA E DO ADRIANO ";
+int coffeeEmptyOffset = 0;
+int coffeeFullOffset = 100;
+int waterEmptyOffset = 0;
+int waterFullOffset = 100;
+int milkEmptyOffset = -1;
+int milkFullOffset = -1;
+int sugarEmptyOffset = 0;
+int sugarFullOffset = 100;
+char * mac = "E841A7FCF5C ";
+
+char * msg1 = MakeRegistrationRequest(100, uniqueName, coffeeEmptyOffset, coffeeFullOffset, waterEmptyOffset, waterFullOffset,  milkEmptyOffset, milkFullOffset, sugarEmptyOffset, sugarFullOffset, mac);
+Serial.println(msg1);
+Serial.println("C");
+delay(DELAY);
+
+// RegistrationRequest --> acceptance (101)
+registrationMessage = 101;
+char * msg2 = MakeRegistrationRequest(101, " ", 0, 0, 0, 0,  0, 0, 0, 0, mac);
+Serial.println(msg2);
+Serial.println("D");
+delay(DELAY);
+
+// RegistrationRequest --> offsets (200)
+registrationMessage = 200;
+char * msg3 = MakeRegistrationRequest(200, " ", 1, 2, 3, 4, 5, 6, 7, 8, mac);
+Serial.println(msg3);
+Serial.println("E");
+delay(DELAY);
+
+// RegistrationRequest --> Unregister (300)
+registrationMessage = 300;
+char * msg4 = MakeRegistrationRequest(registrationMessage, " ", 1, 2, 3, 4, 5, 6, 7, 8, mac);
+Serial.println(msg4);
+delay(DELAY);
+
+//"{\"reportMessage\":100,\"isEnabled\":true,\"coffeeLevel\":100.0,\"waterLevel\":1000.0,\"milkLevel\":-1.0,\"sugarLevel\":-1.0,\"mac\":\"A088B4931364\"}"
+// ReportRequest --> Levels (100) 
+
+
+// ReportRequest --> DisablingCoffeeMachine (900) 
+
+
+
+// OrderRequest --> GiveMeAnOrder = 100   
+
+
+// OrderRequest --> ProcessingWillStart = 200 
+
+
+// OrderRequest --> OrderReady = 300  
+
+
+// OrderRequest --> ProblemOcurredDuringProcessing = 400  
+
+}

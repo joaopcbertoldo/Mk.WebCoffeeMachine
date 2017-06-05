@@ -110,8 +110,8 @@
   <ItemGroup>
     <Compile Include="AppSettingsCache.cs" />
     <Compile Include="AbstractAppConfig.cs" />
+    <Compile Include="ArduinoApi\IngredientsSetup.cs" />
     <Compile Include="Dashboard\AbstractCommandInterpreter.cs" />
-    <Compile Include="Constants.cs" />
     <Compile Include="Dashboard\AbstractDashboard.cs" />
     <Compile Include="Dashboard\Panels\ConsoleWriter.cs" />
     <Compile Include="Dashboard\Panels\AbstractPanelLineBuilder.cs" />
@@ -119,24 +119,17 @@
     <Compile Include="Dashboard\Panels\ConsoleSpaceManager.cs" />
     <Compile Include="Dashboard\Panels\Panel.cs" />
     <Compile Include="Dashboard\Panels\PanelConfig.cs" />
-    <Compile Include="Enums.cs" />
     <Compile Include="Extentions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Entities\CookBook.cs" />
-    <Compile Include="Entities\Recipe.cs" />
-    <Compile Include="ServerArduinoComm\RegistrationRequest.cs" />
-    <Compile Include="ServerArduinoComm\Constants.cs" />
-    <Compile Include="ServerArduinoComm\Enums.cs" />
-    <Compile Include="ServerArduinoComm\RegistrationResponse.cs" />
-    <Compile Include="ServerArduinoComm\OrderRequest.cs" />
-    <Compile Include="ServerArduinoComm\ReportRequest.cs" />
-    <Compile Include="ServerArduinoComm\OrderResponse.cs" />
-    <Compile Include="ServerArduinoComm\ReportResponse.cs" />
-    <Compile Include="ServerArduinoComm\Request.cs" />
-    <Compile Include="ServerArduinoComm\Response.cs" />
-    <Compile Include="ServerArduinoComm\ArduinoResponseFactory.cs" />
-    <Compile Include="ServerWebApi\Constants.cs" />
-    <Compile Include="ServerWebApi\Enums.cs" />
+    <Compile Include="ArduinoApi\RegistrationRequest.cs" />
+    <Compile Include="ArduinoApi\RegistrationResponse.cs" />
+    <Compile Include="ArduinoApi\OrderRequest.cs" />
+    <Compile Include="ArduinoApi\ReportRequest.cs" />
+    <Compile Include="ArduinoApi\OrderResponse.cs" />
+    <Compile Include="ArduinoApi\ReportResponse.cs" />
+    <Compile Include="ArduinoApi\Request.cs" />
+    <Compile Include="ArduinoApi\Response.cs" />
+    <Compile Include="ArduinoApi\ArduinoResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

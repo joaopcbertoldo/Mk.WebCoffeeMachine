@@ -23,10 +23,10 @@
 
 		#region Configs Panel Lines
 
-			PANEL_LINE_INGREDIENT_ADDITION_DELAY = "ingredient.additionDelay",
-			PANEL_LINE_REGISTRATION_REQUEST_TIMEOUT = "registration.requestTimeout",
-			PANEL_LINE_WAIT_AFTER_REGISTRATION_WAIT_AFTER_FAILED_ATTEMPT = "registration.waitAfterFailedAttempt",
-			PANEL_LINE_WAIT_AFTER_REGISTRATION_WAIT_AFTER_SUCCESSFUL_ATTEMPT = "registration.waitAfterSuccessfulAttempt",
+			INGREDIENT_ADDITION_DELAY = "ingredient.additionDelay",
+			REGISTRATION_REQUEST_TIMEOUT = "registration.requestTimeout",
+			WAIT_AFTER_REGISTRATION_WAIT_AFTER_FAILED_ATTEMPT = "registration.waitAfterFailedAttempt",
+			WAIT_AFTER_REGISTRATION_WAIT_AFTER_SUCCESSFUL_ATTEMPT = "registration.waitAfterSuccessfulAttempt",
 
 		#endregion Configs Panel Lines
 

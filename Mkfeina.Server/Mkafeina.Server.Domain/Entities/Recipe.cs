@@ -1,28 +1,30 @@
-﻿using System.Collections;
+﻿using Mkafeina.Server.Domain.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Mkafeina.Domain.Entities
+namespace Mkafeina.Server.Domain.Entities
 {
-	public class Recipe : IEnumerable<KeyValuePair<char, int>>
+	public class Recipe
 	{
-		private Dictionary<char, int> _ingredients = new Dictionary<char, int>();
+		private Dictionary<string, int> _ingredients = new Dictionary<string, int>();
 
 		public string Name { get; set; }
 
-		public bool AddIngredient(char ingredient, int portion)
+		public IEnumerable<string> AllIngredients { get => _ingredients.Select(kv => kv.Key); }
+
+		public int this[string ingredientName] => _ingredients[ingredientName];
+
+		public bool AddIngredient(string ingredientName, int portion)
 		{
-			if (_ingredients.ContainsKey(ingredient) || portion <= 0)
+			if (_ingredients.ContainsKey(ingredientName) || portion <= 0)
 				return false;
-			_ingredients.Add(ingredient, portion);
+			_ingredients.Add(ingredientName, portion);
 			return true;
 		}
 
-		public int this[char ingredient] => _ingredients[ingredient];
-
 		public override string ToString()
-			=> $"({string.Join(",", _ingredients.Select(kv => $"{kv.Key}={kv.Value}").ToArray())})";
+			=> $"({string.Join(",", _ingredients.Select(kv => $"{Ingredient.GetCode(kv.Key)}={kv.Value}").ToArray())})";
 
 		public static Recipe Parse(string str)
 		{
@@ -36,7 +38,7 @@ namespace Mkafeina.Domain.Entities
 			{
 				str = str.Remove(0, 1); // cut the (
 
-				var ingredient = str[0];  // get the char for the resource
+				var ingredientCode = str[0];  // get the char for the resource
 				str = str.Remove(0, 1); // remove the char and the =
 
 				var capture = Regex.Match(str, @"=\d+"); // get the number
@@ -44,7 +46,7 @@ namespace Mkafeina.Domain.Entities
 				var portion = int.Parse(captureStr); // parse to an int
 				str = str.Remove(0, capture.Length); // remove the number
 
-				recipe.AddIngredient(ingredient, portion);
+				recipe.AddIngredient(Ingredient.GetName(ingredientCode), portion);
 
 				var nextChar = str[0]; // get the next char
 
@@ -58,9 +60,5 @@ namespace Mkafeina.Domain.Entities
 
 			return recipe;
 		}
-
-		public IEnumerator<KeyValuePair<char, int>> GetEnumerator() => _ingredients.GetEnumerator();
-
-		IEnumerator IEnumerable.GetEnumerator() => _ingredients.GetEnumerator();
 	}
 }

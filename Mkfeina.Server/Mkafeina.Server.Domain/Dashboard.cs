@@ -1,6 +1,6 @@
 ﻿using Mkafeina.Domain.Dashboard;
 
-namespace Mkafeina.Server
+namespace Mkafeina.Server.Domain
 {
 	public class Dashboard : AbstractDashboard
 	{

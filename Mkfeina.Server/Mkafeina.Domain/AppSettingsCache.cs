@@ -23,10 +23,19 @@ namespace Mkafeina.Simulator
 			_settings = section.Settings;
 		}
 
-		public string this[string key] { get => _settings[key].Value; }
+		public string this[string key] {
+			get {
+				try
+				{
+					return _settings[key].Value;
+				}
+				catch
+				{
+					return null;
+				}
+			}
+		}
 
 		public string[] AllKeys { get => _settings.AllKeys; }
-
-		
 	}
 }

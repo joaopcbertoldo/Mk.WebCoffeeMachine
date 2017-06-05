@@ -51,6 +51,8 @@ namespace Mkafeina.Domain
 
 		public static int ParseToInt(this string str) => int.Parse(str);
 
+		public static bool ParseToBool(this string str) => str.ToLower() == "true" ? true : (str.ToLower() == "false" ? false : throw new ArgumentException()) ;
+
 		public static IEnumerable<string> SplitValueSeparatedBy(this string str, string separator) => str.Split(separator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
 																										 .Select(s => s.Trim())
 																										 .AsEnumerable();

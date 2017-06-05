@@ -1,5 +1,5 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkfeina.Domain.Dashboard.Panels;
+using Mkafeina.Domain.Dashboard.Panels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +51,7 @@ namespace Mkafeina.Domain.Dashboard.Panels
 				lock (_fixedLines)
 				{
 					foreach (var name in linesNames)
-						_fixedLines.Add(name, _lineBuilder.Build(name));
+						_fixedLines.Add(name, _lineBuilder.BuildOrUpdate(name));
 				}
 				ReprintEverythingAsync();
 			});
@@ -81,7 +81,7 @@ namespace Mkafeina.Domain.Dashboard.Panels
 		public void UpdateEventHandler(string lineToUpdate, object caller)
 		{
 			if (_fixedLines.ContainsKey(lineToUpdate))
-				RefreshFixedLineAsync(lineToUpdate, _lineBuilder.UpdateEventHandler(lineToUpdate, caller));
+				RefreshFixedLineAsync(lineToUpdate, _lineBuilder.BuildOrUpdate(lineToUpdate, caller));
 		}
 
 		public void AddRollingLineAsync(string content)

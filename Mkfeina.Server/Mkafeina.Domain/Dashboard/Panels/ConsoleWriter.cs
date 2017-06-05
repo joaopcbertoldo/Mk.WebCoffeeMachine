@@ -3,7 +3,7 @@ using System;
 using static Mkafeina.Domain.Dashboard.Panels.Constants;
 using static Mkafeina.Domain.Extentions;
 
-namespace Mkfeina.Domain.Dashboard.Panels
+namespace Mkafeina.Domain.Dashboard.Panels
 {
 	public class ConsoleWriter
 	{

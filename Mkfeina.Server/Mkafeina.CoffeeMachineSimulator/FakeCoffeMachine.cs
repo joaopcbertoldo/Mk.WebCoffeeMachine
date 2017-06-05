@@ -1,7 +1,7 @@
 ﻿using Mkafeina.CoffeeMachineSimulator;
-using Mkafeina.Domain;
-using Mkafeina.Domain.Entities;
 using Mkafeina.Domain.ServerArduinoComm;
+using Mkafeina.Server.Domain.Entities;
+using Mkafeina.Domain.ArduinoApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -9,17 +9,27 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Mkafeina.Domain.ServerArduinoComm.Constants;
 using static Mkafeina.Simulator.Constants;
 
 namespace Mkafeina.Simulator
 {
+	public enum MakeCoffeeResponseEnum
+	{
+		Undefined = 0,
+		Ok,
+		UnkownRecipe,
+		NotEnoughIngredients,
+		MachineIsDisconnected,
+		Busy
+	}
+
 	public class FakeCoffeMachine
 	{
-		//private byte[] KEY = new byte[] { 42, 33, 13 };
+		public const string APPLICATION_JSON = "application/json",
+							POST = "POST";
+
 		private byte[] KEY = new byte[] { 1, 2, 3 };
 
 #warning tranformar os dois em configs
@@ -47,8 +57,16 @@ namespace Mkafeina.Simulator
 
 		private FakeCoffeMachine()
 		{
-			_waterMl = 1000;
-			_coffeeLevel = 100;
+			var rand = new Random((int)DateTime.Now.Ticks);
+			_waterMin = rand.Next(0, 1);
+			_waterMax = rand.Next(4, 5);
+			_coffeeMin = rand.Next(0, 1);
+			_coffeeMax = rand.Next(4, 5);
+			_sugarMin = rand.Next(0, 1);
+			_sugarMax = rand.Next(4, 5);
+			Water = (float)rand.NextDouble() * 3 + 2;
+			Coffee = (float)rand.NextDouble() * 3 + 2;
+			Sugar = (float)rand.NextDouble() * 3 + 2;
 			_isRegistered = false;
 			_isMakingCoffee = false;
 			_ingredients = new LinkedList<string>(new string[] { INGREDIENTS_COFFEE, INGREDIENTS_WATER });
@@ -83,11 +101,11 @@ namespace Mkafeina.Simulator
 			switch (_selectedIngredient.Value)
 			{
 				case INGREDIENTS_COFFEE:
-					CoffeeLevel += increment;
+					Coffee += increment;
 					break;
 
 				case INGREDIENTS_WATER:
-					WaterMl += increment;
+					Water += increment;
 					break;
 
 				default:
@@ -135,34 +153,28 @@ namespace Mkafeina.Simulator
 			}
 		}
 
-		private int _coffeeLevel;
+		private float _coffee;
 
-		public int CoffeeLevel {
-			get { return _coffeeLevel; }
-			set {
-				_coffeeLevel = value;
-#warning contants...
-				if (_coffeeLevel > 100)
-					_coffeeLevel = 100;
-				else if (_coffeeLevel < 0)
-					_coffeeLevel = 0;
-				StatusChangeEvent?.Invoke(PANEL_LINE_COFFEE_LEVEL);
-			}
+		public float Coffee {
+			// gambiarra
+			get { return _coffee > _coffeeMax ? _coffeeMax : (_coffee < _coffeeMin ? _coffeeMin : _coffee); }
+			set { _coffee = value > _coffeeMax ? _coffeeMax : (value < _coffeeMin ? _coffeeMin : value); }
 		}
 
-		private int _waterMl;
+		private float _sugar;
 
-		public int WaterMl {
-			get { return _waterMl; }
-			set {
-#warning contants...
-				_waterMl = value;
-				if (_waterMl > 1000)
-					_waterMl = 1000;
-				else if (_waterMl < 0)
-					_waterMl = 0;
-				StatusChangeEvent?.Invoke(PANEL_LINE_WATER_LEVEL);
-			}
+		public float Sugar {
+			// gambiarra
+			get { return _sugar > _sugarMax ? _sugarMax : (_sugar < _sugarMin ? _sugarMin : _sugar); }
+			set { _sugar = value > _sugarMax ? _sugarMax : (value < _sugarMin ? _sugarMin : value); }
+		}
+
+		private float _water;
+
+		public float Water {
+			// gambiarra
+			get { return _water > _waterMax ? _waterMax : (_water < _waterMin ? _waterMin : _water); }
+			set { _water = value > _waterMax ? _waterMax : (value < _waterMin ? _waterMin : value); }
 		}
 
 		#endregion Coffee Machine State Stuff
@@ -176,42 +188,42 @@ namespace Mkafeina.Simulator
 			{
 				if (IsMakingCoffee)
 				{
-					SimulatorDashboard.Singleton.LogAsync("Order rejected, CM already busy.");
+					//SimulatorDashboard.Singleton.LogAsync("Order rejected, CM already busy.");
 					return MakeCoffeeResponseEnum.Busy;
 				}
 
-				var coffeeMeasures = recipe['c'];
-				var originalCoffeeLevel = CoffeeLevel;
+				var coffeeMeasures = recipe["Coffee"];
+				var originalCoffeeLevel = Coffee;
 
-				var waterMl = recipe['w'];
-				var originalWaterLevel = WaterMl;
+				var waterMl = recipe["Water"];
+				var originalWaterLevel = Water;
 
-				if (originalCoffeeLevel < coffeeMeasures || originalWaterLevel < waterMl)
+				if (originalCoffeeLevel < coffeeMeasures/10 || originalWaterLevel < waterMl/100)
 				{
-					SimulatorDashboard.Singleton.LogAsync($"Order rejected, not enough ingredients.");
+					//SimulatorDashboard.Singleton.LogAsync($"Order rejected, not enough ingredients.");
 					return MakeCoffeeResponseEnum.NotEnoughIngredients;
 				}
 
 				processingTask = Task.Factory.StartNew(() =>
 				{
-					SimulatorDashboard.Singleton.LogAsync($"Order ACCEPTED");
+					//SimulatorDashboard.Singleton.LogAsync($"Order ACCEPTED");
 					IsMakingCoffee = true;
 
-					SimulatorDashboard.Singleton.LogAsync($"Adding coffee.");
-					while (CoffeeLevel > originalCoffeeLevel - coffeeMeasures)
+					//SimulatorDashboard.Singleton.LogAsync($"Adding coffee.");
+					while (Coffee > originalCoffeeLevel - coffeeMeasures/10)
 					{
 						Thread.Sleep(SimulatorAppConfig.Singleton.IngredientAdditionDelayMs);
-						CoffeeLevel = CoffeeLevel - COFFEE_ITERATION_DECREMENT;
+						Coffee -= (float)0.1;
 					}
 
-					SimulatorDashboard.Singleton.LogAsync($"Adding water.");
-					while (WaterMl > originalWaterLevel - waterMl)
+					//SimulatorDashboard.Singleton.LogAsync($"Adding water.");
+					while (Water > originalWaterLevel - waterMl/100)
 					{
 						Thread.Sleep(SimulatorAppConfig.Singleton.IngredientAdditionDelayMs);
-						WaterMl = WaterMl - WATER_ITERATION_DECREMENT;
+						Water -= (float)0.1;
 					}
 					IsMakingCoffee = false;
-					SimulatorDashboard.Singleton.LogAsync($"Ok, we are done.");
+					//SimulatorDashboard.Singleton.LogAsync($"Ok, we are done.");
 				});
 			}
 
@@ -303,6 +315,12 @@ namespace Mkafeina.Simulator
 		private uint _orderReference = 0;
 
 		private Recipe _recipe = null;
+		private float _coffeeMin;
+		private float _coffeeMax;
+		private float _sugarMin;
+		private float _sugarMax;
+		private float _waterMin;
+		private float _waterMax;
 
 		#endregion Operation aux objs
 
@@ -417,8 +435,13 @@ namespace Mkafeina.Simulator
 				request.Mac = SimulatorAppConfig.Singleton.SimulatorMac;
 				var response = SendHttpRequest<TRequest, TResponse>(request, url);
 
-				if (response == null)
+				if (response == null || response.ResponseCode == 401)
 					return results;
+
+				results[0] = true;
+				for (var i = 0; resultAccessors != null && i < resultAccessors.Length; i++)
+					results.Add(resultAccessors[i].Invoke(response));
+				return results;
 
 				if (response.ResponseCode == (int)ResponseCodeEnum.OK)
 				{
@@ -460,45 +483,6 @@ namespace Mkafeina.Simulator
 
 #warning delete this
 
-		private void SendNewOffsets(out bool acknowledge)
-		{
-			acknowledge = false;
-			SimulatorDashboard.Singleton.LogAsync($"I will send new offsets to the server.");
-			try
-			{
-				var request = new RegistrationRequest()
-				{
-					RegistrationMessage = (int)RegistrationMessageEnum.Offsets,
-#warning fazer isso controlavel no dash
-					CoffeeEmptyOffset = 0,
-					CoffeeFullOffset = 100,
-					WaterEmptyOffset = 0,
-					WaterFullOffset = 1000,
-					Mac = SimulatorAppConfig.Singleton.SimulatorMac,
-				};
-
-				var response = SendHttpRequest<RegistrationRequest, RegistrationResponse>(request, SimulatorAppConfig.Singleton.RegistrationUrl);
-
-				if (response == null)
-					return;
-
-				if (response.ResponseCode != (int)ResponseCodeEnum.OK)
-				{
-					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (response code {response.ResponseCode}).");
-				}
-				else
-				{
-					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets SUCCESSFUL.");
-					acknowledge = true;
-				}
-			}
-			catch (Exception)
-			{
-				SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (exception thrown).");
-			}
-#warning add comando no dash
-		}
-
 		private void Register()
 		{
 			while (!IsRegistered)
@@ -507,12 +491,20 @@ namespace Mkafeina.Simulator
 				var attemptRequest = new RegistrationRequest()
 				{
 					RegistrationMessage = (int)RegistrationMessageEnum.AttemptRegistration,
-					CoffeeEmptyOffset = 0,
-					CoffeeFullOffset = 100,
-					WaterEmptyOffset = 0,
-					WaterFullOffset = 1000,
 					Mac = SimulatorAppConfig.Singleton.SimulatorMac,
-					UniqueName = SimulatorAppConfig.Singleton.SimulatorUniqueName
+					UniqueName = SimulatorAppConfig.Singleton.SimulatorUniqueName,
+					IngredientsSetup = new IngredientsSetup()
+					{
+						CoffeeAvailable = true,
+						CoffeeEmptyOffset = _coffeeMin,
+						CoffeeFullOffset = _coffeeMax,
+						SugarAvailable = true,
+						SugarEmptyOffset = _sugarMin,
+						SugarFullOffset = _sugarMax,
+						WaterAvailable = true,
+						WaterEmptyOffset = _waterMin,
+						WaterFullOffset = _waterMax
+					}
 				};
 
 				var results = SendRequestToServer($"Registration attempt",
@@ -563,6 +555,53 @@ namespace Mkafeina.Simulator
 			}
 		}
 
+		private void SendNewOffsets(out bool acknowledge)
+		{
+			acknowledge = false;
+			SimulatorDashboard.Singleton.LogAsync($"I will send new offsets to the server.");
+			try
+			{
+				var request = new RegistrationRequest()
+				{
+					RegistrationMessage = (int)RegistrationMessageEnum.Offsets,
+					Mac = SimulatorAppConfig.Singleton.SimulatorMac,
+#warning fazer isso controlavel no dash
+					IngredientsSetup = new IngredientsSetup()
+					{
+						CoffeeAvailable = true,
+						CoffeeEmptyOffset = _coffeeMin,
+						CoffeeFullOffset = _coffeeMax,
+						SugarAvailable = true,
+						SugarEmptyOffset = _sugarMin,
+						SugarFullOffset = _sugarMax,
+						WaterAvailable = true,
+						WaterEmptyOffset = _waterMin,
+						WaterFullOffset = _waterMax
+					}
+				};
+
+				var response = SendHttpRequest<RegistrationRequest, RegistrationResponse>(request, SimulatorAppConfig.Singleton.RegistrationUrl);
+
+				if (response == null)
+					return;
+
+				if (response.ResponseCode != (int)ResponseCodeEnum.OK)
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (response code {response.ResponseCode}).");
+				}
+				else
+				{
+					SimulatorDashboard.Singleton.LogAsync($"Sending new offsets SUCCESSFUL.");
+					acknowledge = true;
+				}
+			}
+			catch (Exception)
+			{
+				SimulatorDashboard.Singleton.LogAsync($"Sending new offsets FAILED (exception thrown).");
+			}
+#warning add comando no dash
+		}
+
 		private void Unregister()
 		{
 			while (IsRegistered)
@@ -596,9 +635,10 @@ namespace Mkafeina.Simulator
 			{
 				ReportMessage = (int)ReportMessageEnum.Levels,
 				IsEnabled = IsEnabled,
-				CoffeeLevel = CoffeeLevel,
 				Mac = SimulatorAppConfig.Singleton.SimulatorMac,
-				WaterLevel = WaterMl
+				Coffee = Coffee,
+				Water = Water,
+				Sugar = Sugar
 			};
 
 			var results = SendRequestToServer("Levels report", SimulatorAppConfig.Singleton.ReportUrl, levelsReportRequest, (ReportResponse r) => r.Command);
@@ -645,13 +685,14 @@ namespace Mkafeina.Simulator
 
 		private void TakeOrder()
 		{
-			SimulatorDashboard.Singleton.LogAsync($"I will ask for an order ({DateTime.Now.ToString()}).");
+			//SimulatorDashboard.Singleton.LogAsync($"I will ask for an order ({DateTime.Now.ToString()}).");
 			var giveMeOrderRequest = new OrderRequest()
 			{
 				OrderMessage = (int)OrderMessageEnum.GiveMeAnOrder,
 				Mac = SimulatorAppConfig.Singleton.SimulatorMac
 			};
 
+#warning remover recipe e cookbook do simulador
 			var results = TryManyTimesIfNack(() => SendRequestToServer("Give me an order",
 																	   SimulatorAppConfig.Singleton.OrderUrl,
 																	   giveMeOrderRequest,
@@ -663,7 +704,7 @@ namespace Mkafeina.Simulator
 				_orderReference = (uint)results[ORDER_REFERENCE];
 				_recipe = (Recipe)results[RECIPE];
 
-				SimulatorDashboard.Singleton.LogAsync($"Order taken (ref {_orderReference}), i'll tell the server that i'll prepare it.");
+				//SimulatorDashboard.Singleton.LogAsync($"Order taken (ref {_orderReference}), i'll tell the server that i'll prepare it.");
 				var processingWillStartRequest = new OrderRequest()
 				{
 					OrderMessage = (int)OrderMessageEnum.ProcessingWillStart,

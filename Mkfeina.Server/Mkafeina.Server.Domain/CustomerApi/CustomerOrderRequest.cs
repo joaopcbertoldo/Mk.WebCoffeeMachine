@@ -1,4 +1,4 @@
-﻿namespace Mkafeina.Server.Domain
+﻿namespace Mkafeina.Server.Domain.CustomerApi
 {
 	public class CustomerOrderRequest
 	{
@@ -6,6 +6,6 @@
 
 		public string RecipeName { get; set; }
 
-		public string Email { get; set; }
+		public string CustomerEmail { get; set; }
 	}
 }

@@ -57,7 +57,7 @@ namespace Mkafeina.Simulator
 			}
 			set {
 				_ingredientAdditionDelayMs = value;
-				OnConfigChangeEvent(PANEL_LINE_INGREDIENT_ADDITION_DELAY);
+				OnConfigChangeEvent(INGREDIENT_ADDITION_DELAY);
 			}
 		}
 

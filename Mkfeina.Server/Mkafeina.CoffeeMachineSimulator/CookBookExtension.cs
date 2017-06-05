@@ -1,5 +1,4 @@
-﻿using Mkafeina.Domain;
-using Mkafeina.Domain.Entities;
+﻿using Mkafeina.Server.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +61,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 
 		private static void UpdateExtension(this CookBook cookbook)
 		{
-			__extensionRecipes = new LinkedList<KeyValuePair<string, Recipe>>(cookbook.AllRecipes);
+			__extensionRecipes = new LinkedList<KeyValuePair<string, Recipe>>(cookbook.AllRecipes());
 			__selectedRecipe = __extensionRecipes.First;
 			SelectedRecipeChangeEvent?.Invoke(PANEL_LINE_SELECTED_RECIPE);
 		}

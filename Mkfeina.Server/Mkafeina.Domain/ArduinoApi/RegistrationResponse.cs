@@ -10,7 +10,6 @@ namespace Mkafeina.Domain.ServerArduinoComm
 
 	public class RegistrationResponse : Response
 	{
-#warning improve hashing with the hashing that takes an extra str???
 		public string TrueUniqueName { get; set; }
 	}
 }

@@ -65,18 +65,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientOrderResponse.cs" />
-    <Compile Include="ClientOrderRequest.cs" />
-    <Compile Include="CMProxy.cs" />
-    <Compile Include="CMProxyHub.cs" />
-    <Compile Include="CMProxyOffsets.cs" />
-    <Compile Include="CMProxyState.cs" />
-    <Compile Include="EmailSender.cs" />
-    <Compile Include="Order.cs" />
+    <Compile Include="AppConfig.cs" />
+    <Compile Include="CoffeeMachineProxy\EmailMessageFactory.cs" />
+    <Compile Include="CoffeeMachineProxy\Waitress.cs" />
+    <Compile Include="CommandInterpreter.cs" />
+    <Compile Include="CustomerApi\CustomerOrderResponse.cs" />
+    <Compile Include="CustomerApi\CustomerOrderRequest.cs" />
+    <Compile Include="CoffeeMachineProxy\CMProxy.cs" />
+    <Compile Include="CoffeeMachineProxy\CMProxyHub.cs" />
+    <Compile Include="CoffeeMachineProxy\CMProxyState.cs" />
+    <Compile Include="CustomerApi\CustomerResponseFactory.cs" />
+    <Compile Include="Dashboard.cs" />
+    <Compile Include="CoffeeMachineProxy\EmailSender.cs" />
+    <Compile Include="Entities\CookBook.cs" />
+    <Compile Include="Entities\Ingredient.cs" />
+    <Compile Include="Entities\Ingredients\Coffee.cs" />
+    <Compile Include="Entities\Ingredients\Milk.cs" />
+    <Compile Include="Entities\Ingredients\Sugar.cs" />
+    <Compile Include="Entities\Ingredients\Water.cs" />
+    <Compile Include="Entities\Recipe.cs" />
+    <Compile Include="Entities\Order.cs" />
+    <Compile Include="PanelLineBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ActionResults\app.config" />
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
