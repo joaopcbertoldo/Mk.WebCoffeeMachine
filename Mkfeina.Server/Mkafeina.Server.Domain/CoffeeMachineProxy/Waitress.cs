@@ -50,12 +50,12 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				_queue = new Queue<Order>(),
 				_queueCapacity = appconfig.WaitressCapacity,
 				_minimumSecondsBetweenOrders = appconfig.MinimumSecondsBetweenOrders,
-				_emailSender = EmailSender.CreateEmailSender(DefaultSignature(cmProxy.State.UniqueName)),
+				_emailSender = EmailSender.CreateEmailSender(DefaultSignature(cmProxy.Info.UniqueName)),
 				_status = WaitressStatusEnum.NoOrder
 			};
 
 			lock (__waitresses)
-				__waitresses.Add(cmProxy.State.Mac, waitress);
+				__waitresses.Add(cmProxy.Info.Mac, waitress);
 
 			return waitress;
 		}
@@ -84,7 +84,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		~Waitress()
 		{
 			lock (__waitresses)
-				__waitresses.Remove(_boss.State.Mac);
+				__waitresses.Remove(_boss.Info.Mac);
 		}
 
 		private WaitressStatusEnum _status { get; set; }
@@ -92,7 +92,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		public CustomerOrderResponse HandleCustomerOrder(CustomerOrderRequest request)
 		{
 #warning trasnformar minimos em configs
-			if (!_boss.State.Enabled)
+			if (!_boss.Info.Enabled)
 				return _custResponseFac.CurrentlyDisabled();
 
 			if (!_boss.AllRecipesNames.Any(r => r == request.RecipeName))

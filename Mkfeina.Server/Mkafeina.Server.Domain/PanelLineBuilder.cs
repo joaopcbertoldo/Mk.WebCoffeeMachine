@@ -41,14 +41,14 @@ namespace Mkafeina.Server.Domain
 
 				#region Coffee Machines Panel
 
-				case CMProxyState.ENABLED:
-					return caller == null ? "Enabled? -" : $"Enabled? {(((CMProxyState)caller).Enabled ? "YES" : "NO")}";
+				case CMProxyInfo.ENABLED:
+					return caller == null ? "Enabled? -" : $"Enabled? {(((CMProxyInfo)caller).Enabled ? "YES" : "NO")}";
 
-				case CMProxyState.REGISTRATION:
-					return caller == null ? "Registration: -" : $"Registration: {CMProxyHub.Sgt.RegistrationStatus(((CMProxyState)caller).Mac)}";
+				case CMProxyInfo.REGISTRATION:
+					return caller == null ? "Registration: -" : $"Registration: {CMProxyHub.Sgt.RegistrationStatus(((CMProxyInfo)caller).Mac)}";
 
-				case CMProxyState.MAKING_COFFEE:
-					return caller == null ? "Making coffee? -" : $"Making coffee? {(((CMProxyState)caller).IsMakingCoffee ? "YES" : "NO")}";
+				case CMProxyInfo.MAKING_COFFEE:
+					return caller == null ? "Making coffee? -" : $"Making coffee? {(((CMProxyInfo)caller).IsMakingCoffee ? "YES" : "NO")}";
 
 				case CookBook.RECIPES:
 					return caller == null ? "Recipes: -" : $"Recipes: {string.Join(",", ((CMProxy)caller).AllRecipesNames)}";
@@ -63,7 +63,7 @@ namespace Mkafeina.Server.Domain
 
 		private string CMIngredientLine(string lineName, object caller)
 		{
-			var value = ((CMProxyState)caller)?.GetLevel(lineName);
+			var value = ((CMProxyInfo)caller)?.GetLevel(lineName);
 			return value == null ? $"{lineName} : -" : $"{lineName}: {value}%";
 		}
 	}

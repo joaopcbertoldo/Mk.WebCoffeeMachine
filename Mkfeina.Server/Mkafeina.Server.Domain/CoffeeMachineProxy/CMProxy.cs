@@ -1,6 +1,7 @@
 ﻿using Mkafeina.Domain.ArduinoApi;
 using Mkafeina.Domain.ServerArduinoComm;
 using Mkafeina.Server.Domain.Entities;
+using Mkfeina.Server.Domain.CoffeeMachineProxy;
 using System;
 using System.Collections.Generic;
 
@@ -8,6 +9,23 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
 	public class CMProxy
 	{
+		public static CMProxy CreateCMProxy(string mac, string uniqueName, IngredientsSetup setup)
+		{
+			var proxy = new CMProxy();
+			proxy._info = CMProxyInfo.CreateCMProxyInfo(proxy, mac, uniqueName, setup); ;
+			proxy._cookBook = CookBook.CreateCookbook(proxy);
+			proxy._waitress = Waitress.CreateWaitress(proxy);
+			proxy._ardResponseFac = new ArduinoResponseFactory();
+#warning criar todos os estados!!!!!!!!!!!!!!!!!!
+#warning preencher estado inicial do proxy!!!!!!!!!!!!!!!!!!
+			//proxy._state = ...
+			return proxy;
+		}
+
+		private CMProxy()
+		{
+		}
+
 		#region Internal Stuff
 
 		private CookBook _cookBook;
@@ -16,96 +34,50 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		private ArduinoResponseFactory _ardResponseFac;
 
-		private CMProxyState _state;
+		private CMProxyInfo _info;
 
 		#endregion Internal Stuff
 
-		public CMProxyState State { get => _state; }
+		#region States
+
+		internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+		//internal CMProxyState CurrentState { get; set; }
+
+		#endregion States
+
+		public IEnumerable<string> AllRecipesNames { get => _cookBook.AllRecipesNames; }
+#warning this needs to be public????????????
+		public CMProxyInfo Info { get => _info; }
 
 		public event Action<string, object> ChangeEvent;
 
-		internal void OnStateChangeEvent(string lineName, object caller) => ChangeEvent?.Invoke(lineName, caller);
+		internal void OnChangeEvent(string lineName, object caller) => ChangeEvent?.Invoke(lineName, caller);
 
-		public static CMProxy CreateCMProxy(string mac, string uniqueName, IngredientsSetup setup)
-		{
-			var proxy = new CMProxy();
-			proxy._state = CMProxyState.CreateCMProxyState(proxy, mac, uniqueName, setup); ;
-			proxy._cookBook = CookBook.CreateCookbook(proxy);
-			proxy._waitress = Waitress.CreateWaitress(proxy);
-			proxy._ardResponseFac = new ArduinoResponseFactory();
-			return proxy;
-		}
+		public RegistrationResponse HandleRegistrationAcceptance(RegistrationRequest request) => CurrentState.HandleRegistrationAcceptance(request);
 
-		private CMProxy()
-		{
-		}
+		public RegistrationResponse HandleOffsets(RegistrationRequest request) => CurrentState.HandleOffsets(request);
 
-		public ReportResponse HandleReportRequest(ReportRequest request)
-		{
-			switch (request.ReportMessage)
-			{
-				case (int)ReportMessageEnum.Levels:
-					_state.Update(request);
+		public RegistrationResponse HandleUnregistration(RegistrationRequest request) => CurrentState.HandleUnregistration(request);
 
-					if (_state.LevelsUnderMinimum())
-						return _ardResponseFac.ReportOKDisable();
+		public ReportResponse HandleLevels(ReportRequest request) => CurrentState.HandleLevels(request);
 
-					if (_waitress.ThereIsOrder())
-						return _ardResponseFac.ReportOKGetOrder();
-					else
-						return _ardResponseFac.ReportOKDoNothing();
+		public ReportResponse HandleDisabling(ReportRequest request) => CurrentState.HandleDisabling(request);
 
-				case (int)ReportMessageEnum.DisablingCoffeeMachine:
-					_state.Enabled = false;
-					return _ardResponseFac.ReportOKConfirmDisabling();
+		public OrderResponse HandleGiveMeAnOrder(OrderRequest request) => CurrentState.HandleOrderRequest(request);
 
-				default:
-					return _ardResponseFac.ReportInvalidRequest();
-			}
-		}
+		public OrderResponse HandleProcessingWillStart(OrderRequest request) => CurrentState.HandleProcessingWillStart(request);
 
-		public OrderResponse HandleOrderRequest(OrderRequest request)
-		{
-			switch (request.OrderMessage)
-			{
-				case (int)OrderMessageEnum.GiveMeAnOrder:
-					{
-						var order = _waitress.GetOrder();
-						if (order != null)
-							return _ardResponseFac.OrderOKGiveMeAnOrder(order.Reference, _cookBook[order.RecipeName].ToString());
-						else
-							return _ardResponseFac.OrderInvalidRequest();
-					}
+		public OrderResponse HandleOrderReady(OrderRequest request) => CurrentState.HandleOrderReady(request);
 
-				case (int)OrderMessageEnum.ProcessingWillStart:
-					{
-						var ack = _waitress.NotifyThatOrderIsBeingProcessed();
-						if (ack)
-							return _ardResponseFac.OrderOKProcessingWilStart();
-						else
-							return _ardResponseFac.OrderInvalidRequest();
-					}
-
-				case (int)OrderMessageEnum.OrderReady:
-					{
-						var ack = _waitress.NotifyThatOrderIsReady();
-						if (ack)
-							return _ardResponseFac.OrderOKReady();
-						else
-							return _ardResponseFac.OrderInvalidRequest();
-					}
-
-				case (int)OrderMessageEnum.ProblemOcurredDuringProcessing:
-#warning implementar pra quando da erro 
-					return _ardResponseFac.OrderOKProblemOccurredDuringProcessing();
-
-				default:
-					return _ardResponseFac.OrderInvalidRequest();
-			}
-		}
+		public OrderResponse HandleProblemOcurredDuringProcessing(OrderRequest request) => CurrentState.HandleProblemOcurredDuringProcessing(request);
 
 #warning fazer o dash inscrever no eventoGY
-
-		public IEnumerable<string> AllRecipesNames { get => _cookBook.AllRecipesNames; }
 	}
 }

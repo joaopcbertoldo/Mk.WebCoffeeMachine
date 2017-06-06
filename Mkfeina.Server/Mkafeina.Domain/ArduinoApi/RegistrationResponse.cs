@@ -1,6 +1,4 @@
-﻿using System.Web.Http;
-
-namespace Mkafeina.Domain.ServerArduinoComm
+﻿namespace Mkafeina.Domain.ServerArduinoComm
 {
 	public enum RegistrationResponseCodeEnum
 	{

@@ -11,7 +11,7 @@
 	{
 		private const int NOT_AVAILABLE = -1;
 
-		public int ReportMessage { get; set; }
+		public ReportMessageEnum ReportMessage { get; set; }
 
 		public bool IsEnabled { get; set; }
 

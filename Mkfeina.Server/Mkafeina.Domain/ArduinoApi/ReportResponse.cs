@@ -11,6 +11,6 @@
 
 	public class ReportResponse : Response
 	{
-		public int Command { get; set; } = (int)CommandEnum.DoNothing;
+		public CommandEnum Command { get; set; } = CommandEnum.DoNothing;
 	}
 }

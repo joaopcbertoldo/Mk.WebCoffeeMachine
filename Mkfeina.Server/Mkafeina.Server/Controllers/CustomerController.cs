@@ -1,5 +1,4 @@
-﻿using Mkafeina.Server.Domain.CustomerApi;
-using Mkafeina.Server.Domain.CoffeeMachineProxy;
+﻿using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using Mkafeina.Server.Domain.CustomerApi;
 using System.Web.Http;
 
@@ -17,7 +16,7 @@ namespace Mkafeina.Server.Controllers
 			var mac = CMProxyHub.Sgt.GetMac(cmName);
 			if (mac == null)
 				return _custResponsefac.InexistentCoffeeMachine();
-			return Waitress.GetWaitress(mac).HandleCustomerOrder(request);
+			return Waitress.GetWaitress(mac)?.HandleCustomerOrder(request);
 		}
 	}
 }

@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.cs" />
+    <Compile Include="CoffeeMachineProxy\CMProxyState.cs" />
     <Compile Include="CoffeeMachineProxy\EmailMessageFactory.cs" />
     <Compile Include="CoffeeMachineProxy\Waitress.cs" />
     <Compile Include="CommandInterpreter.cs" />
@@ -73,7 +74,7 @@
     <Compile Include="CustomerApi\CustomerOrderRequest.cs" />
     <Compile Include="CoffeeMachineProxy\CMProxy.cs" />
     <Compile Include="CoffeeMachineProxy\CMProxyHub.cs" />
-    <Compile Include="CoffeeMachineProxy\CMProxyState.cs" />
+    <Compile Include="CoffeeMachineProxy\CMProxyInfo.cs" />
     <Compile Include="CustomerApi\CustomerResponseFactory.cs" />
     <Compile Include="Dashboard.cs" />
     <Compile Include="CoffeeMachineProxy\EmailSender.cs" />
@@ -97,6 +98,9 @@
       <Project>{505029b6-8c04-42c9-b471-c308de925290}</Project>
       <Name>Mkafeina.Domain</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CoffeeMachineProxy\States\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

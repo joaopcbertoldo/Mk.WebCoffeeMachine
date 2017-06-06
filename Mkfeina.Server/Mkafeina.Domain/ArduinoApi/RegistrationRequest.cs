@@ -15,7 +15,7 @@ namespace Mkafeina.Domain.ServerArduinoComm
 	{
 		public const int NOT_AVAILABLE = -1;
 
-		public int RegistrationMessage { get; set; }
+		public RegistrationMessageEnum RegistrationMessage { get; set; }
 
 		public string UniqueName { get; set; }
 

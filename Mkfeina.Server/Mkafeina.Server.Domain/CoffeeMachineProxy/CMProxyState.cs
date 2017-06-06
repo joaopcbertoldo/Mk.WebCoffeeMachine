@@ -1,127 +1,198 @@
-﻿using Mkafeina.Domain.ServerArduinoComm;
-using Mkafeina.Domain.ArduinoApi;
-using Mkafeina.Server.Domain.Entities;
+﻿using Mkafeina.Domain.ArduinoApi;
+using Mkafeina.Domain.ServerArduinoComm;
+using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Mkafeina.Domain;
 
-namespace Mkafeina.Server.Domain.CoffeeMachineProxy
+namespace Mkfeina.Server.Domain.CoffeeMachineProxy
 {
-	public class CMProxyState
+	//{
+	//		lock (_proxies)
+	//		{
+	//			if (!_proxies.ContainsKey(request.Mac))
+	//				return _ardResponseFac.RegistrationInvalidRequest();
+
+	//			var name = _proxies[request.Mac].Info.UniqueName;
+	//_proxies.Remove(request.Mac);
+
+	//			var task = Task.Factory.StartNew(() =>
+	//			{
+	//				var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
+	//				dash.LogAsync($"{name} have been unregistered :(.");
+	//			});
+
+	//			return _ardResponseFac.RegistrationOK();
+	//		}
+	//	}
+	//}
+
+	//		{
+	//			lock (_proxies)
+	//			{
+	//				if (!_proxies.ContainsKey(request.Mac))
+	//					return _ardResponseFac.RegistrationInvalidRequest();
+	//			}
+
+	//var proxy = _proxies[request.Mac];
+
+	//			lock (proxy)
+	//			{
+	//				proxy.Info.SetupAvaiabilityAndOffsets(request.IngredientsSetup);
+
+	//				var task = Task.Factory.StartNew(() =>
+	//				{
+	//					var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
+	//					dash.LogAsync($"{proxy.Info.UniqueName}'s offsets have been reseted.");
+	//				});
+
+	//				return _ardResponseFac.RegistrationOK();
+	//			}
+	//		}
+
+	//	{
+	//			lock (_proxies)
+	//			{
+	//				if (!_proxies.ContainsKey(request.Mac))
+	//					return _ardResponseFac.RegistrationInvalidRequest();
+	//			}
+
+	//var proxy = _proxies[request.Mac];
+
+	//			lock (proxy)
+	//			{
+	//				if (proxy.Info.RegistrationIsAccepted)
+	//					return _ardResponseFac.RegistrationAcceptanceButIsAlreadyAccepted();
+	//				else
+	//				{
+	//					proxy.Info.RegistrationIsAccepted = true;
+
+	//					var task = Task.Factory.StartNew(() =>
+	//					{
+	//						var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
+	//						dash.LogAsync($"{proxy.Info.UniqueName} registration accepted.");
+	//					});
+
+	//					return _ardResponseFac.RegistrationOK();
+	//				}
+	//			}
+	//		}
+
+	//{
+	//		switch (request.ReportMessage)
+	//		{
+	//			case ReportMessageEnum.Levels:
+	//				_info.Update(request);
+
+	//				if (_info.LevelsUnderMinimum())
+	//					return _ardResponseFac.ReportOKDisable();
+
+	//				if (_waitress.ThereIsOrder())
+	//					return _ardResponseFac.ReportOKGetOrder();
+	//				else
+	//					return _ardResponseFac.ReportOKDoNothing();
+
+	//			case (int) ReportMessageEnum.DisablingCoffeeMachine:
+	//				_info.Enabled = false;
+	//				return _ardResponseFac.ReportOKConfirmDisabling();
+
+	//			default:
+	//				return _ardResponseFac.ReportInvalidRequest();
+	//		}
+	//	}
+
+	//		{
+	//			switch (request.OrderMessage)
+	//			{
+	//				case (int) OrderMessageEnum.GiveMeAnOrder:
+	//					{
+	//		var order = _waitress.GetOrder();
+	//		if (order != null)
+	//			return _ardResponseFac.OrderOKGiveMeAnOrder(order.Reference, _cookBook[order.RecipeName].ToString());
+	//		else
+	//			return _ardResponseFac.OrderInvalidRequest();
+	//	}
+
+	//				case (int) OrderMessageEnum.ProcessingWillStart:
+	//					{
+	//		var ack = _waitress.NotifyThatOrderIsBeingProcessed();
+	//		if (ack)
+	//			return _ardResponseFac.OrderOKProcessingWilStart();
+	//		else
+	//			return _ardResponseFac.OrderInvalidRequest();
+	//	}
+
+	//				case (int) OrderMessageEnum.OrderReady:
+	//					{
+	//		var ack = _waitress.NotifyThatOrderIsReady();
+	//		if (ack)
+	//			return _ardResponseFac.OrderOKReady();
+	//		else
+	//			return _ardResponseFac.OrderInvalidRequest();
+	//	}
+
+	//				case (int) OrderMessageEnum.ProblemOcurredDuringProcessing:
+	//#warning implementar pra quando da erro
+	//					return _ardResponseFac.OrderOKProblemOccurredDuringProcessing();
+
+	//				default:
+	//					return _ardResponseFac.OrderInvalidRequest();
+	//			}
+	//		}
+
+	internal abstract class CMProxyState
 	{
-		public const string
-			ENABLED = "enabled",
-			REGISTRATION = "registration",
-			MAKING_COFFEE = "makingCoffee";
+		protected CMProxy _proxy;
 
-		private Dictionary<string, Ingredient> _ingredients;
+		protected ArduinoResponseFactory _ardResponseFac;
 
-		public static CMProxyState CreateCMProxyState(CMProxy owner, string mac, string uniqueName, IngredientsSetup setup)
+		internal CMProxyState(CMProxy proxy)
 		{
-			var state = new CMProxyState()
-			{
-				_ingredients = new Dictionary<string, Ingredient>(Ingredient.GetAllExistingIngredientsInstances()),
-				Mac = mac,
-				UniqueName = uniqueName,
-				RegistrationIsAccepted = false,
-				IsMakingCoffee = false,
-				Enabled = false
-			};
-			state.SetupAvaiabilityAndOffsets(setup);
-			state.ChangeEvent += owner.OnStateChangeEvent;
-			return state;
+			_proxy = proxy;
+			_ardResponseFac = new ArduinoResponseFactory();
 		}
 
-		private CMProxyState() { }
-
-		private string _uniqueName;
-		private bool _isMakingCoffee;
-		private bool _registrationIsAccepted;
-		private bool _isEnabled;
-
-		public event Action<string, object> ChangeEvent;
-
-		public string UniqueName {
-			get => _uniqueName;
-			set {
-				_uniqueName = value;
-			}
-		}
-
-		public bool IsMakingCoffee {
-			get => _isMakingCoffee;
-			set {
-				_isMakingCoffee = value;
-				ChangeEvent?.Invoke(MAKING_COFFEE, this);
-			}
-		}
-
-		public int? GetLevel(string ingredientName) => _ingredients[ingredientName].Level;
-
-		public void SetSignal(string ingredientName, float value)
+		internal RegistrationResponse HandleRegistrationAcceptance(RegistrationRequest request)
 		{
-			_ingredients[ingredientName].Signal = value;
-			ChangeEvent?.Invoke(ingredientName, this);
+			throw new NotImplementedException();
 		}
 
-		public void SetupIngredient(string ingredientName, bool available, float? emptyOffset = null, float? fullOffset = null)
+		internal RegistrationResponse HandleOffsets(RegistrationRequest request)
 		{
-			_ingredients[ingredientName].Available = available;
-			_ingredients[ingredientName].EmptyOffset = emptyOffset;
-			_ingredients[ingredientName].FullOffset = fullOffset;
+			throw new NotImplementedException();
 		}
 
-		public void SetupAvaiabilityAndOffsets(IngredientsSetup setup)
+		internal RegistrationResponse HandleUnregistration(RegistrationRequest request)
 		{
-			var ingredients = Ingredient.GetAllExistingIngredientsNames().ToList();
-			ingredients.ForEach(iName =>
-			{
-				var isAvailable = (bool)typeof(IngredientsSetup).GetProperty($"{iName}Available").GetValue(setup);
-				if (isAvailable)
-				{
-					var empty = (float)typeof(IngredientsSetup).GetProperty($"{iName}EmptyOffset").GetValue(setup);
-					var full = (float)typeof(IngredientsSetup).GetProperty($"{iName}FullOffset").GetValue(setup);
-					SetupIngredient(iName, isAvailable, empty, full);
-				}
-				else
-					SetupIngredient(iName, isAvailable);
-			});
+			throw new NotImplementedException();
 		}
 
-		public bool RegistrationIsAccepted {
-			get => _registrationIsAccepted;
-			set {
-				_registrationIsAccepted = value;
-				ChangeEvent?.Invoke(REGISTRATION, this);
-			}
-		}
-
-		public bool Enabled {
-			get => _isEnabled;
-			set {
-				_isEnabled = value;
-				ChangeEvent?.Invoke(ENABLED, this);
-			}
-		}
-
-		public string Mac { get; set; }
-
-		public IEnumerable<string> AvailableIngredients { get => _ingredients.Where(i => i.Value.Available).Select(i => i.Value.Name).ToList(); }
-
-		public bool LevelsUnderMinimum() => _ingredients.Values.Any(i => i.Level < i.MinimumLevel);
-
-		public void Update(ReportRequest request)
+		internal ReportResponse HandleLevels(ReportRequest request)
 		{
-			_ingredients.Values
-						.ToList()
-						.ForEach(i =>
-						{
-							i.Signal = (float)typeof(ReportRequest).GetProperty(i.Name).GetValue(request);
-							ChangeEvent(i.Name, this);
-						});
-			Enabled = request.IsEnabled;
-			IsMakingCoffee = false;
+			throw new NotImplementedException();
+		}
+
+		internal ReportResponse HandleDisabling(ReportRequest request)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal OrderResponse HandleOrderRequest(OrderRequest request)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal OrderResponse HandleProcessingWillStart(OrderRequest request)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal OrderResponse HandleOrderReady(OrderRequest request)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal OrderResponse HandleProblemOcurredDuringProcessing(OrderRequest request)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

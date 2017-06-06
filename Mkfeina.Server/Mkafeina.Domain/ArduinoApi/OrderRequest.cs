@@ -11,7 +11,7 @@
 
 	public class OrderRequest : Request
 	{
-		public int OrderMessage { get; set; }
+		public OrderMessageEnum OrderMessage { get; set; }
 
 		public uint OrderReference { get; set; }
 	}

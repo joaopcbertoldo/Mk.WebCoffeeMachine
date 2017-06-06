@@ -13,6 +13,6 @@
 	{
 		public static Response NullResponse { get => new Response() { ResponseCode = (int)ResponseCodeEnum.NullResponse }; }
 
-		public int ResponseCode { get; set; }
+		public ResponseCodeEnum ResponseCode { get; set; }
 	}
 }
