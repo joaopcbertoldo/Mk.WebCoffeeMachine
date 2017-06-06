@@ -85,7 +85,7 @@ namespace Mkafeina.Server.Domain
 		public bool LevelsUnderMinimum()
 		{
 #warning parametrizar minimos
-			return WaterLevel <= 10 || CoffeeLevel <= 10 || SugarLevel <= 10 || MilkLevel <= 10;
+			return (WaterLevel >= 0 && WaterLevel <= 10) || (CoffeeLevel >= 0 && CoffeeLevel <= 10) || (SugarLevel >= 0 && SugarLevel <= 10) || (MilkLevel >= 0 && MilkLevel <= 10);
 		}
 
 		public void Update(ReportRequest request, CMProxyOffsets offsets)

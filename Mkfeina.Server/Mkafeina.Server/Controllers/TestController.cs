@@ -13,7 +13,7 @@ namespace Mkafeina.Server.Controllers
 		public HttpResponseMessage Get()
 		{
 			//Console.Clear();
-			Console.WriteLine(Request.ToString());
+			//Console.WriteLine(Request.ToString());
 			//if (_firstTestReceived)
 			//{
 			//	_firstTestReceived = false;
