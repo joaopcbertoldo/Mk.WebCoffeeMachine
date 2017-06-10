@@ -7,7 +7,7 @@
     <ProjectGuid>{13B6ECFF-1B62-41A6-B11C-70B7BFCC5800}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Mkfeina.CoffeeMachineSimulator</RootNamespace>
-    <AssemblyName>Mkfeina.CoffeeMachineSimulator</AssemblyName>
+    <AssemblyName>Mkafeina.Simulator</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -81,15 +81,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CookBookExtension.cs" />
-    <Compile Include="SimulatorAppConfig.cs" />
-    <Compile Include="Constants.cs" />
+    <Compile Include="ArduinoRequestFactory.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="IngredientManipulator.cs" />
+    <Compile Include="ServerCaller.cs" />
+    <Compile Include="CMSignals.cs" />
+    <Compile Include="AppConfig.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FakeCoffeMachine.cs" />
-    <Compile Include="SimulatorCommandInterpreter.cs" />
-    <Compile Include="SimulatorDashboard.cs" />
-    <Compile Include="SimulatorPanelLineBuilder.cs" />
+    <Compile Include="CommandInterpreter.cs" />
+    <Compile Include="Dashboard.cs" />
+    <Compile Include="PanelLineBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

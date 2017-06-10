@@ -1,7 +1,5 @@
 ﻿using Mkafeina.Domain.ArduinoApi;
-using Mkafeina.Domain.ServerArduinoComm;
 using Mkafeina.Server.Domain.Entities;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,13 +20,10 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			{
 				_ingredients = new Dictionary<string, Ingredient>(Ingredient.GetAllExistingIngredientsInstances()),
 				Mac = mac,
-				UniqueName = uniqueName,
-				RegistrationIsAccepted = false,
-				IsMakingCoffee = false,
-				Enabled = false
+				UniqueName = uniqueName
 			};
 			info.SetupAvaiabilityAndOffsets(setup);
-			info.ChangeEvent += owner.OnChangeEvent;
+			_owner = owner;
 			return info;
 		}
 
@@ -37,11 +32,35 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		}
 
 		private string _uniqueName;
-		private bool _isMakingCoffee;
-		private bool _registrationIsAccepted;
-		private bool _isEnabled;
+		private bool _makingCoffee;
+		private bool _enabled;
+		private static CMProxy _owner;
 
-		public event Action<string, object> ChangeEvent;
+		public IEnumerable<string> AllRecipesNames { get => _owner._cookbook.AllRecipesNames; }
+
+		internal bool HasRecipe(string recipeName) => _owner._cookbook[recipeName] == null ? false : true;
+
+		public IEnumerable<string> AvailableIngredients { get => _ingredients.Where(i => i.Value.Available).Select(i => i.Value.Name).ToList(); }
+
+		public bool LevelsUnderMinimum { get => _ingredients.Values.Any(i => i.Level < i.MinimumLevel); }
+
+		public bool Enabled {
+			get => _enabled;
+			set {
+				_enabled = value;
+				_owner.OnChangeEvent(ENABLED);
+			}
+		}
+
+		public bool MakingCoffee {
+			get => _makingCoffee;
+			set {
+				_makingCoffee = value;
+				_owner.OnChangeEvent(MAKING_COFFEE);
+			}
+		}
+
+		public string Mac { get; set; }
 
 		public string UniqueName {
 			get => _uniqueName;
@@ -50,23 +69,20 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			}
 		}
 
-		public bool IsMakingCoffee {
-			get => _isMakingCoffee;
-			set {
-				_isMakingCoffee = value;
-				ChangeEvent?.Invoke(MAKING_COFFEE, this);
-			}
-		}
-
 		public int? GetLevel(string ingredientName) => _ingredients[ingredientName].Level;
 
-		public void SetSignal(string ingredientName, float value)
+		public void UpdateIngredients(IngredientsSignals signals)
 		{
-			_ingredients[ingredientName].Signal = value;
-			ChangeEvent?.Invoke(ingredientName, this);
+			_ingredients.Values
+						.ToList()
+						.ForEach(i =>
+						{
+							i.Signal = (float)typeof(IngredientsSignals).GetProperty(i.Name).GetValue(signals);
+							_owner.OnChangeEvent(i.Name);
+						});
 		}
 
-		public void SetupIngredient(string ingredientName, bool available, float? emptyOffset = null, float? fullOffset = null)
+		public void SetupIngredient(string ingredientName, bool available, float? emptyOffset = null, float? fullOffset = null, int? minimumLevel = null)
 		{
 			_ingredients[ingredientName].Available = available;
 			_ingredients[ingredientName].EmptyOffset = emptyOffset;
@@ -88,41 +104,6 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				else
 					SetupIngredient(iName, isAvailable);
 			});
-		}
-
-		public bool RegistrationIsAccepted {
-			get => _registrationIsAccepted;
-			set {
-				_registrationIsAccepted = value;
-				ChangeEvent?.Invoke(REGISTRATION, this);
-			}
-		}
-
-		public bool Enabled {
-			get => _isEnabled;
-			set {
-				_isEnabled = value;
-				ChangeEvent?.Invoke(ENABLED, this);
-			}
-		}
-
-		public string Mac { get; set; }
-
-		public IEnumerable<string> AvailableIngredients { get => _ingredients.Where(i => i.Value.Available).Select(i => i.Value.Name).ToList(); }
-
-		public bool LevelsUnderMinimum() => _ingredients.Values.Any(i => i.Level < i.MinimumLevel);
-
-		public void Update(ReportRequest request)
-		{
-			_ingredients.Values
-						.ToList()
-						.ForEach(i =>
-						{
-							i.Signal = (float)typeof(ReportRequest).GetProperty(i.Name).GetValue(request);
-							ChangeEvent(i.Name, this);
-						});
-			Enabled = request.IsEnabled;
-			IsMakingCoffee = false;
 		}
 	}
 }

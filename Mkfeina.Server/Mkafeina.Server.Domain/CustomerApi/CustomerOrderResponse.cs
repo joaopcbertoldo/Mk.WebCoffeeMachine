@@ -1,6 +1,6 @@
 ﻿namespace Mkafeina.Server.Domain.CustomerApi
 {
-	public enum CustomerOrderResponseCodeEnum
+	public enum CustomerResponseCodeEnum
 	{
 		Undef = 0,
 		InexistentMachine = 1,
@@ -14,6 +14,6 @@
 	{
 		public string Message { get; set; }
 
-		public int Code { get; set; }
+		public CustomerResponseCodeEnum Code { get; set; }
 	}
 }

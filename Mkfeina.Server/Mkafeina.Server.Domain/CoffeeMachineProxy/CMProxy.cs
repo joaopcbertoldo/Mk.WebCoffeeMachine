@@ -1,24 +1,62 @@
-﻿using Mkafeina.Domain.ArduinoApi;
+﻿using Microsoft.Practices.Unity;
+using Mkafeina.Domain;
+using Mkafeina.Domain.ArduinoApi;
+using Mkafeina.Domain.Dashboard;
 using Mkafeina.Domain.ServerArduinoComm;
+using Mkafeina.Server.Domain.CoffeeMachineProxy.States;
 using Mkafeina.Server.Domain.Entities;
-using Mkfeina.Server.Domain.CoffeeMachineProxy;
 using System;
-using System.Collections.Generic;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
-	public class CMProxy
+	public enum ProxyEventEnum
 	{
+		Undef = 0,
+		ProxyUnregistered = 1,
+		IngredientsSetupRedefined = 2,
+		ResentAGiveMeAnOrder = 3,
+		ToldMachineToDisable = 4,
+		MachineDisabledForNotSendingMessagesForTooLong = 5,
+		MachineAskedForOrderAgain = 6,
+		ToldThatItShouldNotBeProcessing = 7,
+		OrderReady = 8,
+		ToldMachineToReenable = 9,
+		MachineIsDisabled = 10,
+		ReceivedReadyFromUnexpectedOrder = 11,
+		MachineUnregisteredForNotSendingMessagesForTooLong = 12,
+		MachineTakingTooLongToProcess = 13,
+		SentAnOrder = 14
+	}
+
+	public class CMProxy : IProxyEventObservable
+	{
+		private const string
+			COFFE_MACHINE = "cm";
+
 		public static CMProxy CreateCMProxy(string mac, string uniqueName, IngredientsSetup setup)
 		{
 			var proxy = new CMProxy();
 			proxy._info = CMProxyInfo.CreateCMProxyInfo(proxy, mac, uniqueName, setup); ;
-			proxy._cookBook = CookBook.CreateCookbook(proxy);
+			proxy.DisabledState = new CMProxyStateDisabled(proxy);
+			proxy.EnabledState = new CMProxyStateEnabled(proxy);
+			proxy.ProcessingState = new CMProxyStateProcessing(proxy);
+			var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
+			var appconfig = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>();
+			dash.LogAsync($"New Coffee Machine! Name: {uniqueName}.");
+			var config = appconfig.PanelConfigs(COFFE_MACHINE);
+			config.Title = uniqueName;
+			dash.CreateDynamicPanel(uniqueName, config);
+			dash.AddFixedLinesToDynamicPanel(uniqueName, appconfig.PanelFixedLines(COFFE_MACHINE));
+			proxy.ChangeEvent += dash.UpdateEventHandlerOfPanel(uniqueName);
+			proxy._currentState = proxy.EnabledState;
+			proxy.Info.Enabled = true;
+			proxy.Info.MakingCoffee = false;
+			proxy._cookbook = CookBook.CreateCookbook(proxy);
+			proxy._cookbook.GetRecipesFromMainCookbook();
 			proxy._waitress = Waitress.CreateWaitress(proxy);
-			proxy._ardResponseFac = new ArduinoResponseFactory();
-#warning criar todos os estados!!!!!!!!!!!!!!!!!!
-#warning preencher estado inicial do proxy!!!!!!!!!!!!!!!!!!
-			//proxy._state = ...
+			proxy.Subscribe(proxy._waitress);
+			proxy.Subscribe(CMProxyHub.Sgt);
+
 			return proxy;
 		}
 
@@ -28,56 +66,69 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		#region Internal Stuff
 
-		private CookBook _cookBook;
+		internal CookBook _cookbook;
 
-		private Waitress _waitress;
+		internal Waitress _waitress;
 
-		private ArduinoResponseFactory _ardResponseFac;
-
-		private CMProxyInfo _info;
+		internal CMProxyInfo _info;
 
 		#endregion Internal Stuff
 
-		#region States
-
-		internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-		//internal CMProxyState CurrentState { get; set; }
-
-		#endregion States
-
-		public IEnumerable<string> AllRecipesNames { get => _cookBook.AllRecipesNames; }
-#warning this needs to be public????????????
 		public CMProxyInfo Info { get => _info; }
 
 		public event Action<string, object> ChangeEvent;
 
-		internal void OnChangeEvent(string lineName, object caller) => ChangeEvent?.Invoke(lineName, caller);
+		internal void OnChangeEvent(string lineName) => ChangeEvent?.Invoke(lineName, Info);
 
-		public RegistrationResponse HandleRegistrationAcceptance(RegistrationRequest request) => CurrentState.HandleRegistrationAcceptance(request);
+		#region States
+
+#warning carregar estados
+
+		private CMProxyState _currentState;
+
+		internal CMProxyState CurrentState {
+			get { return _currentState; }
+			set {
+				_currentState?.Wdt.Stop();
+				_currentState = value;
+				_currentState.Wdt.Start();
+				OnChangeEvent("state");
+			}
+		}
+
+		internal CMProxyStateEnabled EnabledState { get; set; }
+
+		internal CMProxyStateProcessing ProcessingState { get; set; }
+
+		internal CMProxyStateDisabled DisabledState { get; set; }
+
+		#endregion States
+
+		#region State calls
 
 		public RegistrationResponse HandleOffsets(RegistrationRequest request) => CurrentState.HandleOffsets(request);
 
 		public RegistrationResponse HandleUnregistration(RegistrationRequest request) => CurrentState.HandleUnregistration(request);
 
-		public ReportResponse HandleLevels(ReportRequest request) => CurrentState.HandleLevels(request);
+		public ReportResponse HandleSignals(ReportRequest request) => CurrentState.HandleSignals(request);
 
 		public ReportResponse HandleDisabling(ReportRequest request) => CurrentState.HandleDisabling(request);
 
-		public OrderResponse HandleGiveMeAnOrder(OrderRequest request) => CurrentState.HandleOrderRequest(request);
+		public ReportResponse HandleReenable(ReportRequest request) => CurrentState.HandleReenable(request);
 
-		public OrderResponse HandleProcessingWillStart(OrderRequest request) => CurrentState.HandleProcessingWillStart(request);
+		public OrderResponse HandleGiveMeAnOrder(OrderRequest request) => CurrentState.HandleGiveMeAnOrder(request);
 
-		public OrderResponse HandleOrderReady(OrderRequest request) => CurrentState.HandleOrderReady(request);
+		public OrderResponse HandleReady(OrderRequest request) => CurrentState.HandleReady(request);
 
-		public OrderResponse HandleProblemOcurredDuringProcessing(OrderRequest request) => CurrentState.HandleProblemOcurredDuringProcessing(request);
+		public OrderResponse HandleCancelOrder(OrderRequest request) => CurrentState.HandleCancelOrder(request);
 
-#warning fazer o dash inscrever no eventoGY
+		#endregion State calls
+
+		public void Subscribe(IProxyEventObserver observer)
+		{
+			EnabledState.ProxyActionEvent += observer.Notify;
+			ProcessingState.ProxyActionEvent += observer.Notify;
+			DisabledState.ProxyActionEvent += observer.Notify;
+		}
 	}
 }

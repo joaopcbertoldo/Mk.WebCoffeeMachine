@@ -3,8 +3,17 @@ using System;
 
 namespace Mkafeina.Simulator
 {
-	public class SimulatorCommandInterpreter : AbstractCommandInterpreter
+	public class CommandInterpreter : AbstractCommandInterpreter
 	{
+		public const string
+			LEFT_ARROW = "left",
+			RIGHT_ARROW = "right",
+			UP_ARROW = "up",
+			DOWN_ARROW = "down",
+			F5 = "F5",
+			F4 = "F4"
+			;
+
 		public override void HandleCommand(ConsoleKeyInfo key)
 		{
 		}

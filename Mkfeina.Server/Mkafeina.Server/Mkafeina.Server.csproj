@@ -7,7 +7,7 @@
     <ProjectGuid>{44CDEF8B-280D-424D-920F-5DD0C8D3C2E3}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Mkfeina.Server</RootNamespace>
-    <AssemblyName>Mkfeina.Server</AssemblyName>
+    <AssemblyName>Mkafeina.Server</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

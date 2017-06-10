@@ -3,32 +3,46 @@ using Mkafeina.Domain;
 using Mkafeina.Domain.Dashboard;
 using Mkafeina.Domain.Dashboard.Panels;
 using System;
+using System.Runtime.InteropServices;
 using static Mkafeina.Domain.Extentions;
 
 namespace Mkafeina.Simulator
 {
 	public class Program
 	{
-		public static Action<ConsoleKeyInfo> KeyEvent;
+		#region Maximize Window Stuff
+
+		[DllImport("kernel32.dll", ExactSpelling = true)]
+		private static extern IntPtr GetConsoleWindow();
+
+		private static IntPtr ThisConsole = GetConsoleWindow();
+
+		[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+		#endregion Maximize Window Stuff
 
 		private static void Main(string[] args)
 		{
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractCommandInterpreter, SimulatorCommandInterpreter>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractPanelLineBuilder, SimulatorPanelLineBuilder>();
-			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractAppConfig>(SimulatorAppConfig.Singleton);
+			ShowWindow(ThisConsole, 3); //  maximize window
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractCommandInterpreter, CommandInterpreter>();
 
-			//SimulatorAppConfig.Singleton.ReloadConfigs();
-			//CookBook.Sgt.LoadRecipes(wait: true);
+			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractPanelLineBuilder, PanelLineBuilder>();
 
-			//SimulatorDashboard.Singleton.Title = SimulatorAppConfig.Singleton.SimulatorUniqueName;
-			//SimulatorDashboard.Singleton.CreatePanels(SimulatorAppConfig.Singleton.PanelsConfigs);
-			//SimulatorDashboard.Singleton.AddFixedLinesToPanels(SimulatorAppConfig.Singleton.PanelsLinesCollections);
+			var appconfig = new AppConfig();
+			appconfig.ReloadConfigs();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractAppConfig>(appconfig);
 
-			//FakeCoffeMachine.Singleton.StatusChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
-			//CookBookExtension.SelectedRecipeChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("status");
-			//SimulatorAppConfig.Singleton.ConfigChangeEvent += SimulatorDashboard.Singleton.UpdateEventHandler("configs");
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractDashboard>(Dashboard.Sgt);
 
-			FakeCoffeMachine.Singleton.TurnOn();
+			Dashboard.Sgt.Title = appconfig.SimulatorUniqueName;
+			Dashboard.Sgt.CreateFixedPanels(appconfig.FixedPanelsConfigs);
+			Dashboard.Sgt.AddFixedLinesToFixedPanels(appconfig.AllPanelsFixedLines);
+
+			appconfig.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.CONFIGS);
+			FakeCoffeMachine.Sgt.Signals.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.FAKE_COFFEE_MACHINE);
+
+			FakeCoffeMachine.Sgt.TurnOn();
 
 			while (true) { }
 		}

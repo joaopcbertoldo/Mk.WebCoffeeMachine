@@ -2,9 +2,7 @@
 using Mkafeina.Domain;
 using Mkafeina.Domain.Dashboard.Panels;
 using Mkafeina.Server.Domain.CoffeeMachineProxy;
-using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using Mkafeina.Server.Domain.Entities;
-using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using System;
 
 namespace Mkafeina.Server.Domain
@@ -41,17 +39,17 @@ namespace Mkafeina.Server.Domain
 
 				#region Coffee Machines Panel
 
-				case CMProxyInfo.ENABLED:
-					return caller == null ? "Enabled? -" : $"Enabled? {(((CMProxyInfo)caller).Enabled ? "YES" : "NO")}";
-
-				case CMProxyInfo.REGISTRATION:
-					return caller == null ? "Registration: -" : $"Registration: {CMProxyHub.Sgt.RegistrationStatus(((CMProxyInfo)caller).Mac)}";
-
-				case CMProxyInfo.MAKING_COFFEE:
-					return caller == null ? "Making coffee? -" : $"Making coffee? {(((CMProxyInfo)caller).IsMakingCoffee ? "YES" : "NO")}";
+				case "states":
+					return $"Current state: { "not implemented"}";
 
 				case CookBook.RECIPES:
-					return caller == null ? "Recipes: -" : $"Recipes: {string.Join(",", ((CMProxy)caller).AllRecipesNames)}";
+					return caller == null ? "Recipes: -" : $"Recipes: {string.Join(",", ((CMProxyInfo)caller).AllRecipesNames)}";
+
+				case CMProxyInfo.ENABLED:
+					return caller == null ? "---" : (((CMProxyInfo)caller).Enabled ? "Enabled" : "Disabled");
+
+				case CMProxyInfo.MAKING_COFFEE:
+					return caller == null ? "---" : (((CMProxyInfo)caller).MakingCoffee ? "Making coffee" : "ZzZzZzZ");
 
 				#endregion Coffee Machines Panel
 

@@ -27,8 +27,6 @@ namespace Mkafeina.Server.Domain.Entities
 			{
 				_boss = owner
 			};
-			cookbook.GetRecipesFromMainCookbook();
-			cookbook.ChangeEvent += owner.OnChangeEvent;
 			return cookbook;
 		}
 
@@ -41,7 +39,7 @@ namespace Mkafeina.Server.Domain.Entities
 			var mainCookbook = AppDomain.CurrentDomain.UnityContainer().Resolve<CookBook>();
 			foreach (var recipe in mainCookbook.AllRecipes(_boss?.Info.AvailableIngredients))
 				UpsertRecipe(recipe.Value);
-			ChangeEvent?.Invoke(RECIPES, _boss);
+			_boss.OnChangeEvent(RECIPES);
 		}
 
 		public void UpsertRecipe(Recipe recipe)
@@ -61,6 +59,6 @@ namespace Mkafeina.Server.Domain.Entities
 									 _recipes.Where(kv => kv.Value.AllIngredients.Intersect(availabelIngredients).Count() ==
 														  kv.Value.AllIngredients.Count());
 
-		public Recipe this[string recipeName] { get => _recipes[recipeName]; }
+		public Recipe this[string recipeName] { get { try { return _recipes[recipeName]; } catch { return null; } } }
 	}
 }

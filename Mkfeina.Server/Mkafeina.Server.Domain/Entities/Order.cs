@@ -8,14 +8,15 @@ namespace Mkafeina.Server.Domain.Entities
 		InQueue,
 		Taken,
 		BeingProcessed,
-		Ready
+		Ready,
+		Canceled
 	}
 
 	public class Order
 	{
 		public string RecipeName { get; set; }
 
-		public uint Reference { get; set; }
+		public string Reference { get; set; }
 
 		public string CustomerEmail { get; set; }
 
@@ -25,8 +26,6 @@ namespace Mkafeina.Server.Domain.Entities
 
 		public DateTime TakenTime { get; set; }
 
-		public DateTime ReadyTime { get; set; }
-
-		public DateTime StartedTime { get; set; }
+		public DateTime ReadyOrCanceledTime { get; set; }
 	}
 }

@@ -13,8 +13,8 @@ namespace Mkafeina.Domain
 			TITLE_PROP = "title",
 			NLINES_PROP = "nLines",
 			COLUMNS_PROP = "columns",
-
-			FIXED_LINES_PROP = "fixedLines";
+			FIXED_LINES_PROP = "fixedLines"
+			;
 
 		protected AppSettingsCache _cache = new AppSettingsCache();
 

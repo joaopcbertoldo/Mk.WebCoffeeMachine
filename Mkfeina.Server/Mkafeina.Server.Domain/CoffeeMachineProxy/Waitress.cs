@@ -5,6 +5,7 @@ using Mkafeina.Server.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
@@ -17,7 +18,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		Processing
 	}
 
-	public class Waitress
+	public class Waitress : IProxyEventObserver
 	{
 		#region Static Stuff
 
@@ -53,7 +54,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				_emailSender = EmailSender.CreateEmailSender(DefaultSignature(cmProxy.Info.UniqueName)),
 				_status = WaitressStatusEnum.NoOrder
 			};
-
+			waitress._lastFinishedOrderTime = DateTime.UtcNow.Subtract(new TimeSpan(0,1,0));
 			lock (__waitresses)
 				__waitresses.Add(cmProxy.Info.Mac, waitress);
 
@@ -67,7 +68,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		private CustomerResponseFactory _custResponseFac;
 		private CMProxy _boss;
 		private Queue<Order> _queue;
-		private Order _orderDequeued;
+		private Order _orderUnderProcessing;
 		private int _queueCapacity;
 		private int _minimumSecondsBetweenOrders;
 		private EmailSender _emailSender;
@@ -79,23 +80,22 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		{
 		}
 
-#warning remover isso do destructor da waitress e garantir exclusao da colecao
-
 		~Waitress()
 		{
+#warning remover isso do destructor da waitress e garantir exclusao da colecao
 			lock (__waitresses)
 				__waitresses.Remove(_boss.Info.Mac);
 		}
 
-		private WaitressStatusEnum _status { get; set; }
+		private WaitressStatusEnum _status;
 
 		public CustomerOrderResponse HandleCustomerOrder(CustomerOrderRequest request)
 		{
 #warning trasnformar minimos em configs
 			if (!_boss.Info.Enabled)
-				return _custResponseFac.CurrentlyDisabled();
+				return _custResponseFac.CMCurrentlyDisabled();
 
-			if (!_boss.AllRecipesNames.Any(r => r == request.RecipeName))
+			if (!_boss.Info.HasRecipe(request.RecipeName))
 				return _custResponseFac.RecipeNotAvailable();
 
 			lock (_queue)
@@ -107,7 +107,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				{
 					CustomerEmail = request.CustomerEmail,
 					RecipeName = request.RecipeName,
-					Reference = (uint)new Random((int)DateTime.Now.ToBinary()).Next(),
+					Reference = (new Random((int)DateTime.Now.ToBinary()).Next()).ToString("X"),
 					Status = OrderStatusEnum.InQueue,
 					CreationTime = DateTime.UtcNow
 				};
@@ -115,64 +115,46 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				_queue.Enqueue(newOrder);
 				var positionInQueue = _queue.Count;
 
-				if (_status == WaitressStatusEnum.NoOrder)
-					_status = WaitressStatusEnum.OrdersWaiting;
-
 				return _custResponseFac.OrderReceived(positionInQueue, request.CustomerEmail);
 			}
 		}
 
 		internal bool ThereIsOrder()
-			=> _queue.Count != 0 && (int)(DateTime.UtcNow - _lastFinishedOrderTime).TotalSeconds <= _minimumSecondsBetweenOrders;
-
-#warning add verificacao de order ref....
-#warning transformar em tasks....
+			=> _queue.Count > 0 && (int)(DateTime.UtcNow - _lastFinishedOrderTime).TotalSeconds >= _minimumSecondsBetweenOrders;
 
 		internal Order GetOrder()
 		{
 			lock (_queue)
 			{
-				if (_status == WaitressStatusEnum.OrderWasTaken)
-					return _orderDequeued;
-
-				if (_status != WaitressStatusEnum.OrdersWaiting)
-					return null;
-
-				_orderDequeued = _queue.Dequeue();
-				_orderDequeued.Status = OrderStatusEnum.Taken;
-				_orderDequeued.TakenTime = DateTime.UtcNow;
+				_orderUnderProcessing = _queue.Dequeue();
+				_orderUnderProcessing.Status = OrderStatusEnum.Taken;
+				_orderUnderProcessing.TakenTime = DateTime.UtcNow;
 #warning mandar email avisando que vai comecar
-				_status = WaitressStatusEnum.OrderWasTaken;
-				return _orderDequeued;
+				return _orderUnderProcessing;
 			}
 		}
+		
 
-		internal bool NotifyThatOrderIsBeingProcessed()
+		internal void CancelAllOrders()
+			=> Task.Factory.StartNew(() =>
+			{
+#warning mandar email avisando que pedido foi cancelado
+				if (_orderUnderProcessing != null)
+				{
+					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
+					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
+				}
+
+				foreach (var order in _queue)
+				{
+					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
+					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
+				}
+			});
+
+		public void Notify(ProxyEventEnum action)
 		{
-			if (_status != WaitressStatusEnum.OrderWasTaken)
-				return false;
-
-			_orderDequeued.Status = OrderStatusEnum.BeingProcessed;
-			_orderDequeued.StartedTime = DateTime.UtcNow;
-			_status = WaitressStatusEnum.Processing;
-			return true;
-		}
-
-		internal bool NotifyThatOrderIsReady()
-		{
-			if (_status != WaitressStatusEnum.Processing)
-				return false;
-
-			_orderDequeued.Status = OrderStatusEnum.Ready;
-			_orderDequeued.ReadyTime = DateTime.UtcNow;
-			_status = _queue.Count > 0 ? WaitressStatusEnum.OrdersWaiting : WaitressStatusEnum.NoOrder;
-
-#warning fazer emails
-			//_emailSender.SendMail(_orderDequeued.CustomerEmail, TemplateEmailEnum.OrderReady);
-
-#warning jogar no log antes de se livrar do pedido...
-			_orderDequeued = null;
-			return true;
+			return;
 		}
 	}
 }

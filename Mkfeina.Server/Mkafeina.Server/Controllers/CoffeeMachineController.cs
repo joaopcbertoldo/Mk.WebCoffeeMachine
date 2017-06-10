@@ -9,66 +9,63 @@ namespace Mkafeina.Server.Controllers
 	{
 		public static ArduinoResponseFactory _ardResponseFac = new ArduinoResponseFactory();
 
-		[HttpPost]
+		private TResponse MacNotRegistered<TResponse>() where TResponse : ArduinoResponse
+			=> _ardResponseFac.InvalidRequest<TResponse>(ErrorEnum.MacNotRegistered, CommandEnum.Register);
+
 		[Route("api/coffeemachine/registration")]
-		public RegistrationResponse Registration([FromBody] RegistrationRequest request)
+		public RegistrationResponse Post([FromBody] RegistrationRequest request)
 		{
-			switch (request.RegistrationMessage)
+			switch (request.Msg)
 			{
-				case RegistrationMessageEnum.AttemptRegistration:
-					return CMProxyHub.Sgt.HandleRegistrationAttempt(request);
+				case MessageEnum.Registration:
+					return CMProxyHub.Sgt.HandleRegistration(request);
 
-				case RegistrationMessageEnum.RegistrationAcceptance:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleRegistrationAcceptance(request) ?? _ardResponseFac.RegistrationInvalidRequest();
+				case MessageEnum.Offsets:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleOffsets(request) ?? MacNotRegistered<RegistrationResponse>();
 
-				case RegistrationMessageEnum.Offsets:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleOffsets(request) ?? _ardResponseFac.RegistrationInvalidRequest();
-
-				case RegistrationMessageEnum.Unregister:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleUnregistration(request) ?? _ardResponseFac.RegistrationInvalidRequest();
+				case MessageEnum.Unregistration:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleUnregistration(request) ?? MacNotRegistered<RegistrationResponse>();
 
 				default:
-					return _ardResponseFac.RegistrationInvalidRequest();
+					return _ardResponseFac.InvalidRequest<RegistrationResponse>(ErrorEnum.UnknownMessage);
 			}
 		}
 
-		[HttpPost]
 		[Route("api/coffeemachine/report")]
-		public ReportResponse Report([FromBody] ReportRequest request)
+		public ReportResponse Post([FromBody] ReportRequest request)
 		{
-			switch (request.ReportMessage)
+			switch (request.Msg)
 			{
-				case ReportMessageEnum.Levels:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleLevels(request) ?? _ardResponseFac.ReportInvalidRequest();
+				case MessageEnum.Signals:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleSignals(request) ?? MacNotRegistered<ReportResponse>();
 
-				case ReportMessageEnum.DisablingCoffeeMachine:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleDisabling(request) ?? _ardResponseFac.ReportInvalidRequest();
+				case MessageEnum.Disabling:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleDisabling(request) ?? MacNotRegistered<ReportResponse>();
+
+				case MessageEnum.Reenable:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleReenable(request) ?? MacNotRegistered<ReportResponse>();
 
 				default:
-					return _ardResponseFac.ReportInvalidRequest();
+					return _ardResponseFac.InvalidRequest<ReportResponse>(ErrorEnum.UnknownMessage);
 			}
 		}
 
-		[HttpPost]
 		[Route("api/coffeemachine/order")]
-		public OrderResponse Order([FromBody] OrderRequest request)
+		public OrderResponse Post([FromBody] OrderRequest request)
 		{
-			switch (request.OrderMessage)
+			switch (request.Msg)
 			{
-				case OrderMessageEnum.GiveMeAnOrder:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleGiveMeAnOrder(request) ?? _ardResponseFac.OrderInvalidRequest();
+				case MessageEnum.GiveMeAnOrder:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleGiveMeAnOrder(request) ?? MacNotRegistered<OrderResponse>();
 
-				case OrderMessageEnum.ProcessingWillStart:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleProcessingWillStart(request) ?? _ardResponseFac.OrderInvalidRequest();
+				case MessageEnum.Ready:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleReady(request) ?? MacNotRegistered<OrderResponse>();
 
-				case OrderMessageEnum.OrderReady:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleOrderReady(request) ?? _ardResponseFac.OrderInvalidRequest();
-
-				case OrderMessageEnum.ProblemOcurredDuringProcessing:
-					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleProblemOcurredDuringProcessing(request) ?? _ardResponseFac.OrderInvalidRequest();
+				case MessageEnum.CancelOrders:
+					return CMProxyHub.Sgt.GetProxy(request.Mac)?.HandleCancelOrder(request) ?? MacNotRegistered<OrderResponse>();
 
 				default:
-					return _ardResponseFac.OrderInvalidRequest();
+					return _ardResponseFac.InvalidRequest<OrderResponse>(ErrorEnum.UnknownMessage);
 			}
 		}
 	}

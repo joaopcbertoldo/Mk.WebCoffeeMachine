@@ -1,5 +1,4 @@
-﻿using Mkafeina.Server.Domain.Entities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -13,7 +12,18 @@ namespace Mkafeina.Server.Domain.Entities
 
 		public IEnumerable<string> AllIngredients { get => _ingredients.Select(kv => kv.Key); }
 
-		public int this[string ingredientName] => _ingredients[ingredientName];
+		public int this[string ingredientName] {
+			get {
+				try
+				{
+					return _ingredients[ingredientName];
+				}
+				catch (System.Exception)
+				{
+					return 0;
+				}
+			}
+		}
 
 		public bool AddIngredient(string ingredientName, int portion)
 		{

@@ -24,8 +24,6 @@ namespace Mkafeina.Server
 
 		#endregion Maximize Window Stuff
 
-		public static Action<ConsoleKeyInfo> KeyEvent;
-
 		private static void Main(string[] args)
 		{
 			ShowWindow(ThisConsole, 3); //  maximize window
@@ -48,7 +46,7 @@ namespace Mkafeina.Server
 			Dashboard.Sgt.AddFixedLinesToFixedPanels(appconfig.AllPanelsFixedLines);
 
 			appconfig.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.CONFIGS);
-
+			// key event recebe command interpreter
 			var serverAddress = appconfig.ServerAddress;
 			StartOptions options = new StartOptions();
 			options.Urls.Add(serverAddress);
@@ -56,11 +54,7 @@ namespace Mkafeina.Server
 			using (WebApp.Start<Startup>(options))
 			{
 				Dashboard.Sgt.LogAsync($"Server's web api is on at <<{serverAddress}>>.");
-				while (true)
-				{
-					var key = Console.ReadKey(intercept: true);
-					KeyEvent?.Invoke(key);
-				}
+				while (true) { }
 			}
 		}
 	}

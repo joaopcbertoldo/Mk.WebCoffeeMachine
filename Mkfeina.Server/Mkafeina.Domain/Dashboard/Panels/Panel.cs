@@ -1,5 +1,4 @@
 ﻿using Microsoft.Practices.Unity;
-using Mkafeina.Domain.Dashboard.Panels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,23 +43,14 @@ namespace Mkafeina.Domain.Dashboard.Panels
 			=> _consoleWriter.WriteLine(new int[] { Config.Space[LEFT], Config.Space[TOP] },
 									   Config.Title.AdjustLength(Console.WindowWidth, TITLE_FULFILLER, FulfillStringMode.Centered));
 
-		public void AddFixedLinesAsync(IEnumerable<string> linesNames, bool wait)
+		public void AddFixedLines(IEnumerable<string> linesNames)
 		{
-			var task = Task.Factory.StartNew(() =>
+			lock (_fixedLines)
 			{
-				lock (_fixedLines)
-				{
-					foreach (var name in linesNames)
-						_fixedLines.Add(name, _lineBuilder.BuildOrUpdate(name));
-				}
-				ReprintEverythingAsync();
-			});
-
-			if (wait)
-			{
-				if (task.Status == TaskStatus.Running)
-					task.Wait();
+				foreach (var name in linesNames)
+					_fixedLines.Add(name, _lineBuilder.BuildOrUpdate(name));
 			}
+			ReprintEverythingAsync();
 		}
 
 		public void RefreshFixedLineAsync(string name, string content)

@@ -5,35 +5,35 @@
 		public CustomerOrderResponse InexistentCoffeeMachine()
 			=> new CustomerOrderResponse()
 			{
-				Code = (int)CustomerOrderResponseCodeEnum.InexistentMachine,
+				Code = CustomerResponseCodeEnum.InexistentMachine,
 				Message = "Error: inexistent coffee machine."
 			};
 
-		public CustomerOrderResponse CurrentlyDisabled()
+		public CustomerOrderResponse CMCurrentlyDisabled()
 			=> new CustomerOrderResponse()
 			{
-				Code = (int)CustomerOrderResponseCodeEnum.CMDisabled,
+				Code = CustomerResponseCodeEnum.CMDisabled,
 				Message = "Error: coffee machine is currently disabled."
 			};
 
 		public CustomerOrderResponse RecipeNotAvailable()
 			=> new CustomerOrderResponse()
 			{
-				Code = (int)CustomerOrderResponseCodeEnum.RecipeNotAvailable,
+				Code = CustomerResponseCodeEnum.RecipeNotAvailable,
 				Message = "Error: recipe not available."
 			};
 
 		internal CustomerOrderResponse FullQueue()
 			=> new CustomerOrderResponse()
 			{
-				Code = (int)CustomerOrderResponseCodeEnum.FullQueue,
+				Code = CustomerResponseCodeEnum.FullQueue,
 				Message = "Error: queue is full, wate some moments to make your order."
 			};
 
 		internal CustomerOrderResponse OrderReceived(int positionInQueue, string email)
 			=> new CustomerOrderResponse()
 			{
-				Code = (int)CustomerOrderResponseCodeEnum.OrderReceived,
+				Code = CustomerResponseCodeEnum.OrderReceived,
 				Message = $"Ok, your order was received ans is the {Ordinal(positionInQueue)} in the queue. " +
 						  (positionInQueue == 1 ? $"You will receive a message at <<{email}>> when it is ready." :
 												  $"You will receive a message at <<{email}>> when it start to be processed.")

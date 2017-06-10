@@ -38,10 +38,10 @@ namespace Mkafeina.Domain.Dashboard
 			=> _panels.Add(panelName, new Panel(panelConfigs));
 
 		public void AddFixedLinesToFixedPanels(IDictionary<string, IEnumerable<string>> panelsFixedLines)
-			=> _panels.ToList().ForEach(kv => kv.Value.AddFixedLinesAsync(panelsFixedLines[kv.Key], wait: true));
+			=> _panels.ToList().ForEach(kv => kv.Value.AddFixedLines(panelsFixedLines[kv.Key]));
 
 		public void AddFixedLinesToDynamicPanel(string panelName, IEnumerable<string> panelFixedLines)
-			=> _panels[panelName].AddFixedLinesAsync(panelFixedLines, wait: true);
+			=> _panels[panelName].AddFixedLines(panelFixedLines);
 
 		public Action<string, object> UpdateEventHandlerOfPanel(string panelName)
 			=> _panels[panelName].UpdateEventHandler;

@@ -1,7 +1,6 @@
 ﻿using Mkafeina.Domain;
 using Mkafeina.Server.Domain.Entities;
 using System.Threading.Tasks;
-using System;
 
 namespace Mkafeina.Server.Domain
 {
@@ -32,7 +31,6 @@ namespace Mkafeina.Server.Domain
 			EMAIL_SENDER_TIMEOUT_MS = "emailSender.timeoutMs",
 
 			MINIMUM_LEVEL = "minimumLevel";
-
 
 		public string ServerAddress { get => _cache[SERVER_ADDRESS]; }
 		public string ServerNiceAddress { get => _cache[SERVER_NICE_ADDRESS]; }

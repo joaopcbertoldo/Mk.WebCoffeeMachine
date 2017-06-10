@@ -6,7 +6,6 @@ using Mkafeina.Domain.ServerArduinoComm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
@@ -18,10 +17,9 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		Registered
 	}
 
-	public class CMProxyHub
+	public class CMProxyHub : IProxyEventObserver
 	{
-		private const string
-			COFFE_MACHINE = "cm";
+		
 
 		#region Singleton Stuff
 
@@ -49,11 +47,6 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		#endregion Internal Stuff
 
-		public RegistrationStatusEnum RegistrationStatus(string mac)
-			=> !_proxies.ContainsKey(mac) ? RegistrationStatusEnum.NotRegistered :
-				_proxies[mac].Info.RegistrationIsAccepted ? RegistrationStatusEnum.Registered :
-				  											RegistrationStatusEnum.RegistrationNotAccepted;
-
 		public string GetMac(string uniqueName)
 			=> _proxies.Any(kv => kv.Value.Info.UniqueName == uniqueName) ?
 					_proxies.First(kv => kv.Value.Info.UniqueName == uniqueName).Value.Info.Mac :
@@ -61,17 +54,16 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		public CMProxy GetProxy(string mac) => _proxies.ContainsKey(mac) ? _proxies[mac] : null;
 
-		public RegistrationResponse HandleRegistrationAttempt(RegistrationRequest request)
+		public RegistrationResponse HandleRegistration(RegistrationRequest request)
 		{
 			lock (_proxies)
 			{
-				var mac = request.Mac;
-				if (_proxies.ContainsKey(mac))
-					return _ardResponseFac.RegistrationAttemptWithMacAlreadyExisting(alreadyAccepted: _proxies[mac].Info.RegistrationIsAccepted);
+				if (_proxies.ContainsKey(request.Mac))
+					return _ardResponseFac.InvalidRequest<RegistrationResponse>(ErrorEnum.MacAlreadyRegistered);
 
 				var proxy = CreateProxy(request);
-				_proxies.Add(mac, proxy);
-				return _ardResponseFac.RegistrationOK(proxy.Info.UniqueName);
+				_proxies.Add(request.Mac, proxy);
+				return _ardResponseFac.RegistrationOK(CommandEnum.Enable);
 			}
 		}
 
@@ -83,20 +75,26 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 			var proxy = CMProxy.CreateCMProxy(request.Mac, uniqueName, request.IngredientsSetup);
 
-			var task = Task.Factory.StartNew(() =>
-			{
-#warning mover Dash para este namespace para colocar isso dentro do dash
-				var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
-				var appconfig = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>();
-				dash.LogAsync($"New Coffee Machine! Name: {uniqueName}.");
-				var config = appconfig.PanelConfigs(COFFE_MACHINE);
-				config.Title = uniqueName;
-				dash.CreateDynamicPanel(uniqueName, config);
-				dash.AddFixedLinesToDynamicPanel(uniqueName, appconfig.PanelFixedLines(COFFE_MACHINE));
-				proxy.ChangeEvent += dash.UpdateEventHandlerOfPanel(uniqueName);
-			});
-
 			return proxy;
+		}
+
+		internal void Unregister(string mac)
+		{
+			lock (this)
+			{
+				if (!_proxies.ContainsKey(mac))
+					return;
+				var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
+				var proxy = GetProxy(mac);
+#warning remover dynamic panel
+				//dash.DeleteDynamicPanel(proxy.Info.UniqueName);
+				_proxies.Remove(mac);
+			}
+		}
+
+		public void Notify(ProxyEventEnum action)
+		{
+			return;
 		}
 	}
 }
