@@ -1,6 +1,5 @@
 ﻿using Microsoft.Practices.Unity;
 using Mkafeina.Domain;
-using Mkafeina.Domain.ArduinoApi;
 using Mkafeina.Domain.Dashboard;
 using Mkafeina.Domain.ServerArduinoComm;
 using System;
@@ -9,17 +8,16 @@ using System.Linq;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
-	public enum RegistrationStatusEnum
-	{
-		Undefined = 0,
-		NotRegistered,
-		RegistrationNotAccepted,
-		Registered
-	}
-
 	public class CMProxyHub : IProxyEventObserver
 	{
-		
+		public const string
+			NEXT = "CMProxyHub.next",
+			PREVIOUS = "CMProxyHub.previous",
+			SELECTED = "CMProxyHub.selected",
+			DISABLE_SELECTED = "CMProxyHub.disableSelected"
+			;
+
+		private int _selectedCMIndex = 0;
 
 		#region Singleton Stuff
 
@@ -47,10 +45,23 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		#endregion Internal Stuff
 
+		public event Action<string, object> ChangeEvent;
+
+		internal void OnChangeEvent(string lineName) => ChangeEvent?.Invoke(lineName, this);
+
 		public string GetMac(string uniqueName)
 			=> _proxies.Any(kv => kv.Value.Info.UniqueName == uniqueName) ?
 					_proxies.First(kv => kv.Value.Info.UniqueName == uniqueName).Value.Info.Mac :
 					null;
+
+		internal void ReloadRecipesOnProxies()
+		{
+			lock (_proxies)
+			{
+				foreach (var p in _proxies)
+					p.Value.Cookbook.GetRecipesFromMainCookbook();
+			}
+		}
 
 		public CMProxy GetProxy(string mac) => _proxies.ContainsKey(mac) ? _proxies[mac] : null;
 
@@ -59,42 +70,67 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			lock (_proxies)
 			{
 				if (_proxies.ContainsKey(request.Mac))
+				{
+					Dashboard.Sgt.LogAsync($"Registration request for mac <<{request.Mac}>> REJECTED (already registered).");
 					return _ardResponseFac.InvalidRequest<RegistrationResponse>(ErrorEnum.MacAlreadyRegistered);
-
-				var proxy = CreateProxy(request);
-				_proxies.Add(request.Mac, proxy);
-				return _ardResponseFac.RegistrationOK(CommandEnum.Enable);
+				}
+				else
+				{
+					while (_proxies.Any(kv => kv.Value.Info.UniqueName == request.UniqueName))
+						request.UniqueName = request.UniqueName.GenerateNameVersion();
+					var proxy = new CMProxy(request);
+					_proxies.Add(request.Mac, proxy);
+					Dashboard.Sgt.LogAsync($"New Coffee Machine! Name: {request.UniqueName}.");
+					return _ardResponseFac.RegistrationOK(CommandEnum.Enable);
+				}
 			}
-		}
-
-		private CMProxy CreateProxy(RegistrationRequest request)
-		{
-			var uniqueName = request.UniqueName;
-			while (_proxies.Any(kv => kv.Value.Info.UniqueName == request.UniqueName))
-				uniqueName = uniqueName.GenerateNameVersion();
-
-			var proxy = CMProxy.CreateCMProxy(request.Mac, uniqueName, request.IngredientsSetup);
-
-			return proxy;
 		}
 
 		internal void Unregister(string mac)
 		{
-			lock (this)
+			lock (_proxies)
 			{
 				if (!_proxies.ContainsKey(mac))
 					return;
-				var dash = AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractDashboard>();
-				var proxy = GetProxy(mac);
-#warning remover dynamic panel
-				//dash.DeleteDynamicPanel(proxy.Info.UniqueName);
-				_proxies.Remove(mac);
+				else
+				{
+					var uniqueName = GetProxy(mac).Info.UniqueName;
+					Waitress.DeleteWaitress(mac);
+					_proxies.Remove(mac);
+					_selectedCMIndex = 0;
+					Dashboard.Sgt.DeleteDynamicPanel(uniqueName);
+					Dashboard.Sgt.LogAsync($"Coffee machine {uniqueName} has been unregistered.");
+				}
 			}
 		}
 
 		public void Notify(ProxyEventEnum action)
 		{
+#warning do something here ????????????????
 			return;
+		}
+
+		public void NextCM()
+		{
+			_selectedCMIndex = _selectedCMIndex + 1 >= _proxies.Count ? _proxies.Count -1 : _selectedCMIndex + 1;
+			OnChangeEvent(SELECTED);
+		}
+
+		public void PreviousCM()
+		{
+			_selectedCMIndex = _selectedCMIndex <= 0 ? 0 : _selectedCMIndex - 1;
+			OnChangeEvent(SELECTED);
+		}
+
+		public string SelectedCM { get => _proxies.ElementAtOrDefault(_selectedCMIndex).Equals(default(KeyValuePair<string,CMProxy>)) ?
+												  "---" : _proxies.ElementAtOrDefault(_selectedCMIndex).Value.Info.UniqueName; }
+
+		public void DisableSelectedCM()
+		{
+			var proxy = _proxies.ElementAtOrDefault(_selectedCMIndex);
+			if (proxy.Equals(default(KeyValuePair<string, CMProxy>)))
+				return;
+			proxy.Value.SetDisableFlag();
 		}
 	}
 }

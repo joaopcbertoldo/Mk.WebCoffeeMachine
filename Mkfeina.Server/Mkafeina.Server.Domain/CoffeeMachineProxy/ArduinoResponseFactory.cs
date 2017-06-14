@@ -1,7 +1,8 @@
-﻿using Mkafeina.Domain.ServerArduinoComm;
+﻿using Mkafeina.Domain.ArduinoApi;
+using Mkafeina.Domain.ServerArduinoComm;
 using System;
 
-namespace Mkafeina.Domain.ArduinoApi
+namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 {
 	public class ArduinoResponseFactory
 	{
@@ -31,24 +32,28 @@ namespace Mkafeina.Domain.ArduinoApi
 				ResponseCode = ResponseCodeEnum.OK
 			};
 
-		public OrderResponse GiveMeAnOrderOK(string orderRef, string recipeStr)
+		// OLD VERSION
+		//public OrderResponse GiveMeAnOrderOK(string orderRef, string recipe)
+		public OrderResponse GiveMeAnOrderOK(string orderRef, RecipeObj recipe)
 			=> new OrderResponse()
 			{
 				Command = CommandEnum.Process,
 				ResponseCode = ResponseCodeEnum.OK,
 				Error = ErrorEnum.Void,
 				OrderReference = orderRef,
-				RecipeStr = recipeStr
+				Recipe = recipe
 			};
 
-		public OrderResponse GiveMeAnOrderAgain(string orderRef, string recipeStr)
+		// OLD VERSION
+		//public OrderResponse GiveMeAnOrderAgain(string orderRef, string recipe)
+		public OrderResponse GiveMeAnOrderAgain(string orderRef, RecipeObj recipe)
 			=> new OrderResponse()
 			{
 				Command = CommandEnum.Process,
 				ResponseCode = ResponseCodeEnum.InvalidRequest,
 				Error = ErrorEnum.OrderAlreadyTaken,
 				OrderReference = orderRef,
-				RecipeStr = recipeStr
+				Recipe = recipe
 			};
 
 		public OrderResponse ReadyOK()

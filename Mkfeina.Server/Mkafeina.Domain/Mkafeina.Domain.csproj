@@ -112,6 +112,7 @@
     <Compile Include="AbstractAppConfig.cs" />
     <Compile Include="ArduinoApi\IngredientsSetup.cs" />
     <Compile Include="ArduinoApi\IngredientsSignals.cs" />
+    <Compile Include="ArduinoApi\RecipeObj.cs" />
     <Compile Include="Dashboard\AbstractCommandInterpreter.cs" />
     <Compile Include="Dashboard\AbstractDashboard.cs" />
     <Compile Include="Dashboard\Panels\ConsoleWriter.cs" />
@@ -124,7 +125,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ArduinoApi\Requests.cs" />
     <Compile Include="ArduinoApi\Responses.cs" />
-    <Compile Include="ArduinoApi\ArduinoResponseFactory.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

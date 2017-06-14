@@ -73,7 +73,8 @@ namespace Mkafeina.CoffeeMachineSimulator
 				{
 					Coffee = _fakeCoffeMachine.Signals.Coffee,
 					Water = _fakeCoffeMachine.Signals.Water,
-					Sugar = _fakeCoffeMachine.Signals.Sugar
+					Sugar = _fakeCoffeMachine.Signals.Sugar,
+					Enabled = _fakeCoffeMachine.Signals.Enabled
 				}
 			};
 

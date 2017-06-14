@@ -1,94 +1,77 @@
-/*
 
- * Serial Port Monitor
- *
- * 
- */
 //Setup Output
-
 int ledPin_3 = 3;
 
-//Setup message bytes
+bool foundFlag = false;
+const int BUFFERSIZE = 350;
 
-byte inputByte_0;
-
-byte inputByte_1;
-
-byte inputByte_2;
-
-byte inputByte_3;
-
-byte inputByte_4;
-
-//Setup
+byte inputBuffer[5];
 
 void setup() {
-
   pinMode(ledPin_3, OUTPUT);
   Serial.begin(9600);
-  digitalWrite(ledPin_3, HIGH);//
-  delay(250);//
-  digitalWrite(ledPin_3, LOW);//
-  delay(250);//
+  digitalWrite(ledPin_3, HIGH);
+  delay(500);
+  digitalWrite(ledPin_3, LOW);
+  delay(500);
+  
+  while(!foundFlag){
+    if (Serial.available() == 5){
+      //Read buffer
+      inputBuffer[0] = Serial.read(); delay(100);    
+      inputBuffer[1] = Serial.read(); delay(100);
+      inputBuffer[2] = Serial.read(); delay(100);
+      inputBuffer[3] = Serial.read(); delay(100);
+      inputBuffer[4] = Serial.read(); delay(100);
+
+      if(inputBuffer[0] == 16 && inputBuffer[1] == 128 && inputBuffer[2] == 0 && inputBuffer[3] == 0 && inputBuffer[4] == 4)
+      {
+          Serial.print("HELLO FROM ARDUINO");
+          foundFlag = true;
+      }
+    }
+  }
+  delay(2000);
 }
 
 //Main Loop
 
 void loop() {
-
-  //Read Buffer
-  if (Serial.available() == 5) 
-  {
-    isComunication = true
-    //Read buffer
-    inputByte_0 = Serial.read();
-    delay(100);    
-    inputByte_1 = Serial.read();
-    delay(100);      
-    inputByte_2 = Serial.read();
-    delay(100);      
-    inputByte_3 = Serial.read();
-    delay(100);
-    inputByte_4 = Serial.read();   
-  }
-  //Check for start of Message
-  if(inputByte_0 == 16)
-  {       
-       //Detect Command type
-       switch (inputByte_1) 
-       {
-          case 127:
-             //Set PIN and value
-             switch (inputByte_2)
-            {
-              case 4:
-                if(inputByte_3 == 255)
-                {
-                  digitalWrite(ledPin_3, HIGH); 
-                  Serial.print("high");
-                  break;
-                }
-                else
-                {
-                  digitalWrite(ledPin_3, LOW);
-                  Serial.print("low");
-                  break;
-                }
-              break;
-            } 
-            break;
-          case 128:
-            //Say hello
-            Serial.print("HELLO FROM ARDUINO");
-            break;
-        } 
-        //Clear Message bytes
-        inputByte_0 = 0;
-        inputByte_1 = 0;
-        inputByte_2 = 0;
-        inputByte_3 = 0;
-        inputByte_4 = 0;
-        //Let the PC know we are ready for more data
-        Serial.print("-READY TO RECEIVE");
-  }
+    if (Serial)
+    {
+      String request = "generic request 0, generic request 1, generic request 2, generic request 3, generic request 4, generic request 5, generic request 6, generic request 7, generic request 8, generic request 9";
+      delay(1000);
+      Serial.println(request);
+      delay(1000);
+      String response = ReadResponse();
+      delay(1000);
+      Serial.println(response);
+    }
 }
+
+String ReadResponse(){
+    char response[BUFFERSIZE] = "";
+    bool allRead = false;
+    int index = 0;
+    while (!allRead){
+        int inByte;
+        if (Serial.available() > 0){
+            inByte = Serial.read(); 
+            //delay(80);
+            if (inByte == '\n')
+            {
+              allRead = true;
+              response[index] = '\0';
+            }
+            else
+            {
+              response[index++] = inByte;
+            }
+            
+        }
+    }
+    String str(response);
+    str.trim();
+    return str;
+}
+

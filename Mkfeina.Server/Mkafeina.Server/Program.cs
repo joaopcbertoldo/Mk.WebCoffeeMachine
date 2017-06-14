@@ -4,7 +4,9 @@ using Mkafeina.Domain;
 using Mkafeina.Domain.Dashboard;
 using Mkafeina.Domain.Dashboard.Panels;
 using Mkafeina.Server.Domain;
+using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using Mkafeina.Server.Domain.Entities;
+using Mkafeina.Server.Serial;
 using System;
 using System.Runtime.InteropServices;
 
@@ -29,24 +31,28 @@ namespace Mkafeina.Server
 			ShowWindow(ThisConsole, 3); //  maximize window
 
 			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractCommandInterpreter, CommandInterpreter>();
-
 			AppDomain.CurrentDomain.UnityContainer().RegisterType<AbstractPanelLineBuilder, PanelLineBuilder>();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractDashboard>(Dashboard.Sgt);
 
 			var appconfig = new AppConfig();
-			appconfig.ReloadConfigs();
 			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractAppConfig>(appconfig);
 
-			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<AbstractDashboard>(Dashboard.Sgt);
-			var mainCookbook = CookBook.CreateCookbook();
-			appconfig.LoadRecipesOnCookBookAsync(mainCookbook, wait: true);
-			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<CookBook>(mainCookbook);
+			var mainCookbook = new MainCookBook();
+			AppDomain.CurrentDomain.UnityContainer().RegisterInstance<MainCookBook>(mainCookbook);
 
 			Dashboard.Sgt.Title = appconfig.ServerName;
 			Dashboard.Sgt.CreateFixedPanels(appconfig.FixedPanelsConfigs);
 			Dashboard.Sgt.AddFixedLinesToFixedPanels(appconfig.AllPanelsFixedLines);
 
 			appconfig.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.CONFIGS);
-			// key event recebe command interpreter
+			CMProxyHub.Sgt.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel("server");
+
+			Dashboard.Sgt.LogAsync($"Server's dashboard is ready.");
+
+			ArduinoSerialController.StartSearchingForArduinos();
+
+			//while (true) { }
+
 			var serverAddress = appconfig.ServerAddress;
 			StartOptions options = new StartOptions();
 			options.Urls.Add(serverAddress);
@@ -54,6 +60,7 @@ namespace Mkafeina.Server
 			using (WebApp.Start<Startup>(options))
 			{
 				Dashboard.Sgt.LogAsync($"Server's web api is on at <<{serverAddress}>>.");
+				Dashboard.Sgt.LogAsync($"Server's nice address is <<{appconfig.ServerNiceAddress}>>.");
 				while (true) { }
 			}
 		}

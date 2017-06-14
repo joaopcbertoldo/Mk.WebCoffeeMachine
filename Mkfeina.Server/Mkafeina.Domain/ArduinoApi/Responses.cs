@@ -1,4 +1,6 @@
-﻿namespace Mkafeina.Domain.ServerArduinoComm
+﻿using Mkafeina.Domain.ArduinoApi;
+
+namespace Mkafeina.Domain.ServerArduinoComm
 {
 	public enum ResponseCodeEnum
 	{
@@ -34,7 +36,8 @@
 		ShouldNotBeProcessing = 84,
 		ShouldBeAlreadyEnabled = 85,
 		WrongOrderReference = 86,
-		ShouldNotSendSignals = 87
+		ShouldNotSendSignals = 87,
+		DisabledWithoutWarning = 88
 	}
 
 	public class ArduinoResponse
@@ -58,6 +61,8 @@
 	{
 		public string OrderReference { get; set; }
 
-		public string RecipeStr { get; set; }
+		// OLD VERSION
+		//public string Recipe { get; set; }
+		public RecipeObj Recipe { get; set; }
 	}
 }

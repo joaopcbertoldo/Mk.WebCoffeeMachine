@@ -7,7 +7,7 @@
     <ProjectGuid>{8CE2D7BF-D1C7-4F38-BF77-D4FDB48646BD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Mkfeina.Server.Domain</RootNamespace>
+    <RootNamespace>Mkafeina.Server.Domain</RootNamespace>
     <AssemblyName>Mkafeina.Server.Domain</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -66,8 +66,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.cs" />
+    <Compile Include="CoffeeMachineProxy\ArduinoResponseFactory.cs" />
     <Compile Include="CoffeeMachineProxy\States\CMProxyState.cs" />
-    <Compile Include="CoffeeMachineProxy\EmailMessageFactory.cs" />
     <Compile Include="CoffeeMachineProxy\IProxyEventObservable.cs" />
     <Compile Include="CoffeeMachineProxy\IProxyEventObserver.cs" />
     <Compile Include="CoffeeMachineProxy\States\CMProxyStateDisabled.cs" />

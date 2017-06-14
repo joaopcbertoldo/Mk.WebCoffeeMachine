@@ -2,6 +2,7 @@
 using Mkafeina.CoffeeMachineSimulator;
 using Mkafeina.Domain;
 using Mkafeina.Domain.Dashboard.Panels;
+using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using Mkafeina.Server.Domain.Entities;
 using System;
 
@@ -46,8 +47,26 @@ namespace Mkafeina.Simulator
 				case CMSignals.WATER:
 					return $"Water : {FakeCoffeMachine.Sgt.Signals.Water:0.0}V";
 
-				case CookBook.RECIPES:
-					return $"Recipes: {((CookBook)caller).AllRecipesNames}";
+				case CMSignals.MIN_COFFEE:
+					return $"Minimum coffee : {FakeCoffeMachine.Sgt.Signals.CoffeeMin:0.0}V";
+
+				case CMSignals.MAX_COFFEE:
+					return $"Maximum coffee : {FakeCoffeMachine.Sgt.Signals.CoffeeMax:0.0}V";
+
+				case CMSignals.MIN_SUGAR:
+					return $"Minimum sugar : {FakeCoffeMachine.Sgt.Signals.SugarMin:0.0}V";
+
+				case CMSignals.MAX_SUGAR:
+					return $"Maximum sugar : {FakeCoffeMachine.Sgt.Signals.SugarMax:0.0}V";
+
+				case CMSignals.MIN_WATER:
+					return $"Minimum water : {FakeCoffeMachine.Sgt.Signals.WaterMin:0.0}V";
+
+				case CMSignals.MAX_WATER:
+					return $"Maximum water : {FakeCoffeMachine.Sgt.Signals.WaterMax:0.0}V";
+
+				case CMProxy.CMPROXY_RECIPES:
+					return $"Recipes: {((CMProxy)caller).Info.AllRecipesNames}";
 
 				case IngredientManipulator.SELECTED:
 					return $"Selected ingredient : {IngredientManipulator.Sgt.SelectedIngredient}";
@@ -76,11 +95,17 @@ namespace Mkafeina.Simulator
 				case CommandInterpreter.DOWN_ARROW:
 					return "DOWN : ingredient--";
 
-				case CommandInterpreter.F5:
-					return "F5 : reload configs and dashboard";
+				case CommandInterpreter.REENABLE:
+					return "R : reenable";
 
-				case CommandInterpreter.F4:
-					return "F4 : reload recipes";
+				case CommandInterpreter.DISABLE:
+					return "D : disable";
+
+				case CommandInterpreter.ONOFF:
+					return "ON/OFF";
+
+				case CommandInterpreter.OFFSETS:
+					return "O : send offsets";
 
 				#endregion Commands Panel Lines
 

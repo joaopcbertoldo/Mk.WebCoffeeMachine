@@ -9,5 +9,7 @@
 		public float Milk { get; set; }
 
 		public float Sugar { get; set; }
+
+		public bool Enabled { get; set; }
 	}
 }

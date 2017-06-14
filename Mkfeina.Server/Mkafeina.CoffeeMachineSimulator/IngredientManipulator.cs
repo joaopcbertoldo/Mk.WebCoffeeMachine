@@ -1,5 +1,5 @@
 ﻿using Mkafeina.Simulator;
-using Mkfeina.Simulator;
+using Mkafeina.Simulator;
 using System;
 using System.Collections.Generic;
 
@@ -10,12 +10,14 @@ namespace Mkafeina.CoffeeMachineSimulator
 		private const float KEY_BOARD_INCREMENT = (float)0.1;
 
 		public const string
-			NEXT = "next",
-			PREVIOUS = "previous",
+			NEXT = "simulator.next",
+			PREVIOUS = "simulator.previous",
+			INCREASE = "simulator.increase",
+			DECREASE = "simulator.decrease",
 			COFFEE = "Coffee",
 			SUGAR = "Sugar",
 			WATER = "Water",
-			SELECTED = "selected"
+			SELECTED = "simulator.selected"
 			;
 
 		private static IngredientManipulator __sgt = new IngredientManipulator();
@@ -29,6 +31,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 
 		private LinkedList<string> _ingredients;
 		private LinkedListNode<string> _selectedIngredient;
+
 		public event Action<string, object> ChangeEvent;
 
 		private void OnChangeEvent(string lineName) => ChangeEvent?.Invoke(lineName, this);

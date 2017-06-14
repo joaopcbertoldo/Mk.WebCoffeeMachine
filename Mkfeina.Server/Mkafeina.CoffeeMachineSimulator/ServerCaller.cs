@@ -1,5 +1,6 @@
 ﻿using Microsoft.Practices.Unity;
 using Mkafeina.Domain;
+using Mkafeina.Domain.ArduinoApi;
 using Mkafeina.Domain.ServerArduinoComm;
 using Mkafeina.Simulator;
 using Newtonsoft.Json;
@@ -158,6 +159,15 @@ namespace Mkafeina.CoffeeMachineSimulator
 			Dashboard.Sgt.LogAsync($"I will send new offsets to the server.");
 			try
 			{
+				var rand = new Random((int)DateTime.Now.Millisecond);
+
+				_fakeCoffeMachine.Signals.CoffeeMin = (float)rand.NextDouble();
+				_fakeCoffeMachine.Signals.CoffeeMax = (float)rand.NextDouble() + 4;
+				_fakeCoffeMachine.Signals.SugarMin = (float)rand.NextDouble();
+				_fakeCoffeMachine.Signals.SugarMax = (float)rand.NextDouble() + 4;
+				_fakeCoffeMachine.Signals.WaterMin = (float)rand.NextDouble();
+				_fakeCoffeMachine.Signals.WaterMax = (float)rand.NextDouble() + 4;
+
 				var request = _ardRequestFac.Offsets();
 				RegistrationResponse response;
 				var ack = Send(request, out response, _serverApiUrl + REGISTRATION_ROUTE);
@@ -175,7 +185,6 @@ namespace Mkafeina.CoffeeMachineSimulator
 				command = CommandEnum.Undef;
 				return false;
 			}
-#warning add comando no dash
 		}
 
 		public bool TryToUnregister()
@@ -210,8 +219,6 @@ namespace Mkafeina.CoffeeMachineSimulator
 			ReportResponse response;
 			var ack = Send(disablingRequest, out response, _serverApiUrl + REPORT_ROUTE);
 			command = response?.Command ?? CommandEnum.Undef;
-			if (ack)
-				_fakeCoffeMachine.Signals.Enabled = false;
 			return ack;
 		}
 
@@ -222,19 +229,21 @@ namespace Mkafeina.CoffeeMachineSimulator
 			ReportResponse response;
 			var ack = Send(reenablingRequest, out response, _serverApiUrl + REPORT_ROUTE);
 			command = response?.Command ?? CommandEnum.Undef;
-			if (ack)
+			if (ack && command == CommandEnum.Enable)
 				_fakeCoffeMachine.Signals.Enabled = true;
 			return ack;
 		}
 
-		public bool TryToTakeOrder(out CommandEnum command, out string orderRef, out string recipeStr)
+		// OLD VERSION
+		//public bool TryToTakeOrder(out CommandEnum command, out string orderRef, out string recipe)
+		public bool TryToTakeOrder(out CommandEnum command, out string orderRef, out RecipeObj recipe)
 		{
 			Dashboard.Sgt.LogAsync($"I will ask for an order ({DateTime.Now.ToString()}).");
 			var giveMeOrderRequest = _ardRequestFac.GiveMeAnOrder();
 			OrderResponse response;
 			var ack = Send(giveMeOrderRequest, out response, _serverApiUrl + ORDER_ROUTE);
 			orderRef = response?.OrderReference;
-			recipeStr = response?.RecipeStr;
+			recipe = response?.Recipe;
 			command = response?.Command ?? CommandEnum.Undef;
 			if (orderRef != null)
 				Dashboard.Sgt.LogAsync($"ORDER RECEIVED!!!! ref: {orderRef}.");

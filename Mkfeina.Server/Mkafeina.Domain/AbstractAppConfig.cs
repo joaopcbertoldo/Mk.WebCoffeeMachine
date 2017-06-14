@@ -77,5 +77,6 @@ namespace Mkafeina.Domain
 			=> _cache[$"{panelName}.{COLUMNS_PROP}"].ParseToInt();
 
 		#endregion Panels Stuff
+		
 	}
 }

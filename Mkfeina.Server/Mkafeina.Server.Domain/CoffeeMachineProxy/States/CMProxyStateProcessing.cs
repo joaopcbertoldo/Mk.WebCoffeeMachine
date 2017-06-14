@@ -33,7 +33,9 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 
 		internal override OrderResponse HandleGiveMeAnOrder(OrderRequest request)
 		{
-			_response = _ardResponseFac.GiveMeAnOrderAgain(OrderUnderProcess.Reference, _proxy._cookbook[OrderUnderProcess.RecipeName].ToString());
+			// OLD VERSION
+			//_response = _ardResponseFac.GiveMeAnOrderAgain(OrderUnderProcess.Reference, _proxy.Cookbook[OrderUnderProcess.RecipeName].ToString());
+			_response = _ardResponseFac.GiveMeAnOrderAgain(OrderUnderProcess.Reference, _proxy.Cookbook[OrderUnderProcess.RecipeName].ToRecipeObj());
 			LogOnDashAsync($"{_proxy.Info.UniqueName} asked for an order but it's already processing a {OrderUnderProcess.RecipeName} (ref: {OrderUnderProcess.Reference}).");
 			CallProxyActionEvent(ProxyEventEnum.MachineAskedForOrderAgain);
 			return (OrderResponse)_response;
@@ -50,7 +52,6 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 				return (OrderResponse)_response;
 			}
 			_response = _ardResponseFac.ReadyOK();
-			LogOnDashAsync($"{_proxy.Info.UniqueName} finished an order of {OrderUnderProcess.RecipeName} (ref: {OrderUnderProcess.Reference}).");
 			OrderUnderProcess = null;
 			CallProxyActionEvent(ProxyEventEnum.OrderReady);
 			_proxy.CurrentState = _proxy.EnabledState;

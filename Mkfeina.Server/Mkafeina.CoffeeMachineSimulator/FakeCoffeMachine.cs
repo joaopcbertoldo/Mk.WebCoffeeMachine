@@ -1,8 +1,8 @@
 ﻿using Microsoft.Practices.Unity;
 using Mkafeina.CoffeeMachineSimulator;
 using Mkafeina.Domain;
+using Mkafeina.Domain.ArduinoApi;
 using Mkafeina.Domain.ServerArduinoComm;
-using Mkafeina.Server.Domain.Entities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,27 +17,33 @@ namespace Mkafeina.Simulator
 
 		internal string UniqueName { get; set; }
 
+		internal bool IsRunning { get => _mainTask.Status == TaskStatus.Running; }
+
 		internal CMSignals Signals { get; set; }
 
 		internal CommandEnum _command;
 
 		internal string _orderRef;
 
-		internal Recipe _recipe = null;
+		// OLD VERSION
+		//internal Recipe _recipe = null;
+		internal RecipeObj _recipe = null;
 
 		private CancellationTokenSource _mainTaksCancelTokenSource;
 
 		private Task _mainTask;
 
 		internal bool _reenableFlag;
+		private AppConfig _appconfig;
+		internal bool _disableFlag;
 
 		#region Singleton Stuff
 
 		private static object _singletonSync = new object();
 
 		private static FakeCoffeMachine __sgt;
-		private string _recipeStr;
-		private AppConfig _appconfig;
+		private bool _insertProblemFlag;
+		internal bool _sendOffsetsFlag;
 
 		public static FakeCoffeMachine Sgt {
 			get {
@@ -81,11 +87,7 @@ namespace Mkafeina.Simulator
 				return;
 			_mainTaksCancelTokenSource.Cancel();
 			Dashboard.Sgt.LogAsync("Main task stoped.");
-			for (var i = 0; i < 20; i++)
-			{
-				if (!_serverCaller.TryToUnregister())
-					break;
-			}
+			for (var i = 0; i < 20; i++) { if (!_serverCaller.TryToUnregister()) break; }
 		}
 
 		private Task CreateMainTask()
@@ -98,12 +100,26 @@ namespace Mkafeina.Simulator
 
 					   _serverCaller.TryToReportSignals(out _command);
 
+					   if (_disableFlag)
+					   {
+						   _disableFlag = false;
+						   Signals.Enabled = false;
+						   for (var i = 0; i < 20; i++) { if (_serverCaller.TryToDisable(out _command)) break; }
+						   continue;
+					   }
+
+					   if (_sendOffsetsFlag)
+					   {
+						   _sendOffsetsFlag = false;
+						   for (var i = 0; i < 20; i++) { if (_serverCaller.TryToSendNewOffsets(out _command)) break; }
+						   continue;
+					   }
+
 					   if (Signals.Enabled)
 					   {
 						   switch (_command)
 						   {
 							   case CommandEnum.Void:
-								   Thread.Sleep(2500);
 								   break;
 
 							   case CommandEnum.Disable:
@@ -116,10 +132,19 @@ namespace Mkafeina.Simulator
 
 						   if (_command == CommandEnum.TakeAnOrder || _command == CommandEnum.Process)
 						   {
-							   for (var i = 0; i < 20; i++) { if (_serverCaller.TryToTakeOrder(out _command, out _orderRef, out _recipeStr)) break; }
+							   for (var i = 0; i < 20; i++) { if (_serverCaller.TryToTakeOrder(out _command, out _orderRef, out _recipe)) break; }
 							   if (_command == CommandEnum.Process)
 							   {
-								   var ack = MakeCoffee(Recipe.Parse(_recipeStr));
+								   if (_insertProblemFlag)
+								   {
+									   _insertProblemFlag = false;
+									   for (var i = 0; i < 20; i++) { if (_serverCaller.TryCancelOrders(out _command)) break; }
+									   Signals.Enabled = false;
+								   }
+
+								   // OLD VERSION
+								   //var ack = MakeCoffee(Recipe.Parse(_recipe));
+								   var ack = MakeCoffee(_recipe);
 								   if (ack)
 								   {
 									   for (var i = 0; i < 20; i++) { if (_serverCaller.TryReady(out _command)) break; }
@@ -135,13 +160,15 @@ namespace Mkafeina.Simulator
 					   {
 						   while (!_serverCaller.TryToReenable(out _command))
 						   { }
-						   if (_command == CommandEnum.Enable)
-							   Signals.Enabled = true;
+						   _reenableFlag = false;
 					   }
+					   Thread.Sleep(2500);
 				   }
 			   }, _mainTaksCancelTokenSource.Token);
 
-		public bool MakeCoffee(Recipe recipe)
+		// OLD VERSION
+		//public bool MakeCoffee(Recipe recipe)
+		public bool MakeCoffee(RecipeObj recipe)
 		{
 			try
 			{
@@ -149,13 +176,19 @@ namespace Mkafeina.Simulator
 				{
 					Signals.MakingCoffee = true;
 
-					var coffeeMeasures = recipe["Coffee"] * 0.15;
+					// OLD VERSION
+					//var coffeeMeasures = recipe["Coffee"] * 0.15;
+					var coffeeMeasures = recipe.Coffee * 0.15;
 					var originalCoffeeLevel = Signals.Coffee;
 
-					var waterMl = (Signals.CoffeeMax - Signals.CoffeeMin) * recipe["Water"]/1000;
+					// OLD VERSION
+					//var waterMl = (Signals.CoffeeMax - Signals.CoffeeMin) * recipe["Water"] / 1000;
+					var waterMl = (Signals.CoffeeMax - Signals.CoffeeMin) * recipe.Water / 1000;
 					var originalWaterLevel = Signals.Water;
 
-					var sugarMeasures = recipe["Sugar"] * 0.15;
+					// OLD VERSION
+					//var sugarMeasures = recipe["Sugar"] * 0.15;
+					var sugarMeasures = recipe.Sugar * 0.15;
 					var originalSugarLevel = Signals.Sugar;
 
 					Dashboard.Sgt.LogAsync($"Adding coffee.");
@@ -185,6 +218,7 @@ namespace Mkafeina.Simulator
 			}
 			catch (Exception ex)
 			{
+#warning jogar exception no db
 				return false;
 			}
 

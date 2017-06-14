@@ -5,6 +5,7 @@ using Mkafeina.Server.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy
@@ -22,16 +23,13 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 	{
 		#region Static Stuff
 
-		private static string DefaultSignature(string uniqueName)
-			=> $"MKafeína - {uniqueName}\r\n" +
-			   "mkafeina@gmail.com\r\n" +
-			   "São Carlos, SP, Brazil\r\n" +
-			   "Avenida Trabalhador São-Carlense, 400, Pq Arnold Schimidt\r\n" +
-			   "Prédio da Engenharia Mecatrônica, USP\r\n" +
-			   "\r\n" +
-			   "© 2017 - MKafeína - Engenharia Mecatrônica EESC USP";
-
 		private static Dictionary<string, Waitress> __waitresses = new Dictionary<string, Waitress>();
+
+		internal static void DeleteWaitress(string mac)
+		{
+			lock (__waitresses)
+				__waitresses.Remove(mac);
+		}
 
 		public static Waitress GetWaitress(string mac)
 		{
@@ -41,61 +39,107 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			}
 		}
 
-		internal static Waitress CreateWaitress(CMProxy cmProxy)
-		{
-			var appconfig = (AppConfig)AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>();
-			var waitress = new Waitress()
-			{
-				_boss = cmProxy,
-				_custResponseFac = new CustomerResponseFactory(),
-				_queue = new Queue<Order>(),
-				_queueCapacity = appconfig.WaitressCapacity,
-				_minimumSecondsBetweenOrders = appconfig.MinimumSecondsBetweenOrders,
-				_emailSender = EmailSender.CreateEmailSender(DefaultSignature(cmProxy.Info.UniqueName)),
-				_status = WaitressStatusEnum.NoOrder
-			};
-			waitress._lastFinishedOrderTime = DateTime.UtcNow.Subtract(new TimeSpan(0,1,0));
-			lock (__waitresses)
-				__waitresses.Add(cmProxy.Info.Mac, waitress);
-
-			return waitress;
-		}
-
 		#endregion Static Stuff
 
 		#region Internal Stuff
 
 		private CustomerResponseFactory _custResponseFac;
-		private CMProxy _boss;
+		private CMProxy _owner;
 		private Queue<Order> _queue;
 		private Order _orderUnderProcessing;
 		private int _queueCapacity;
 		private int _minimumSecondsBetweenOrders;
 		private EmailSender _emailSender;
 		private DateTime _lastFinishedOrderTime;
+		private WaitressStatusEnum _status;
 
 		#endregion Internal Stuff
 
-		private Waitress()
+		internal Waitress(CMProxy owner)
 		{
-		}
+			var appconfig = (AppConfig)AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>();
 
-		~Waitress()
-		{
-#warning remover isso do destructor da waitress e garantir exclusao da colecao
+			_owner = owner;
+			_status = WaitressStatusEnum.NoOrder;
+			_minimumSecondsBetweenOrders = appconfig.MinimumSecondsBetweenOrders;
+			_queueCapacity = appconfig.WaitressCapacity;
+			_lastFinishedOrderTime = DateTime.UtcNow.Subtract(new TimeSpan(0, 1, 0));
+
+			_emailSender = new EmailSender(_owner);
+			_custResponseFac = new CustomerResponseFactory();
+			_queue = new Queue<Order>();
+
 			lock (__waitresses)
-				__waitresses.Remove(_boss.Info.Mac);
+				__waitresses.Add(owner.Info.Mac, this);
 		}
 
-		private WaitressStatusEnum _status;
+		internal bool ThereIsOrder() => _queue.Count > 0 && (int)(DateTime.UtcNow - _lastFinishedOrderTime).TotalSeconds >= _minimumSecondsBetweenOrders;
+
+		internal Order GetOrder()
+		{
+			lock (_queue)
+			{
+				_orderUnderProcessing = _queue.Dequeue();
+				_orderUnderProcessing.Status = OrderStatusEnum.Taken;
+				_orderUnderProcessing.TakenTime = DateTime.UtcNow;
+				if (_queue.Count > 0)
+				{
+					_emailSender.SendMailOrderTakenAsync(_orderUnderProcessing);
+					for (var i = 0; _queue.Count > i; i++)
+						_emailSender.SendMailQueuePositionHasChangedAsync(_queue.ElementAt(i), i + 1);
+				}
+				Dashboard.Sgt.LogAsync($"Order {_orderUnderProcessing.Reference} ({_orderUnderProcessing.RecipeName}) has been taken by {_owner.Info.UniqueName}.");
+				return _orderUnderProcessing;
+			}
+		}
+
+		internal void CancelAllOrders()
+		{
+			Task.Factory.StartNew(() =>
+			{
+				if (_orderUnderProcessing != null)
+				{
+					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
+					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
+					_emailSender.SendMailOrderCanceledAsync(_orderUnderProcessing);
+				}
+
+				foreach (var order in _queue)
+				{
+					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
+					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
+					_emailSender.SendMailOrderCanceledAsync(order);
+				}
+
+				Dashboard.Sgt.LogAsync($"All orders of {_owner.Info.UniqueName} have been canceled.");
+				Thread.Sleep(15000);
+				while (_queue.Count > 0)
+					_queue.Dequeue();
+			});
+		}
+
+		public void Notify(ProxyEventEnum action)
+		{
+#warning mover os logs para ca ou para o hub (TIRAR DOS STATES)
+			switch (action)
+			{
+				case ProxyEventEnum.OrderReady:
+					Dashboard.Sgt.LogAsync($"{_owner.Info.UniqueName} finished an order of {_orderUnderProcessing.RecipeName} (ref: {_orderUnderProcessing.Reference}).");
+					_emailSender.SendMailOrderReadyAsync(_orderUnderProcessing);
+					_orderUnderProcessing = null;
+					return;
+
+				default:
+					return;
+			}
+		}
 
 		public CustomerOrderResponse HandleCustomerOrder(CustomerOrderRequest request)
 		{
-#warning trasnformar minimos em configs
-			if (!_boss.Info.Enabled)
+			if (!_owner.Info.Enabled)
 				return _custResponseFac.CMCurrentlyDisabled();
 
-			if (!_boss.Info.HasRecipe(request.RecipeName))
+			if (!_owner.Info.HasRecipe(request.RecipeName))
 				return _custResponseFac.RecipeNotAvailable();
 
 			lock (_queue)
@@ -115,46 +159,9 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				_queue.Enqueue(newOrder);
 				var positionInQueue = _queue.Count;
 
+				Dashboard.Sgt.LogAsync($"{_owner.Info.UniqueName}'s waitress has got a new order! Recipe: {newOrder.RecipeName}, ref: {newOrder.Reference}.");
 				return _custResponseFac.OrderReceived(positionInQueue, request.CustomerEmail);
 			}
-		}
-
-		internal bool ThereIsOrder()
-			=> _queue.Count > 0 && (int)(DateTime.UtcNow - _lastFinishedOrderTime).TotalSeconds >= _minimumSecondsBetweenOrders;
-
-		internal Order GetOrder()
-		{
-			lock (_queue)
-			{
-				_orderUnderProcessing = _queue.Dequeue();
-				_orderUnderProcessing.Status = OrderStatusEnum.Taken;
-				_orderUnderProcessing.TakenTime = DateTime.UtcNow;
-#warning mandar email avisando que vai comecar
-				return _orderUnderProcessing;
-			}
-		}
-		
-
-		internal void CancelAllOrders()
-			=> Task.Factory.StartNew(() =>
-			{
-#warning mandar email avisando que pedido foi cancelado
-				if (_orderUnderProcessing != null)
-				{
-					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
-					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
-				}
-
-				foreach (var order in _queue)
-				{
-					_orderUnderProcessing.Status = OrderStatusEnum.Canceled;
-					_orderUnderProcessing.ReadyOrCanceledTime = DateTime.UtcNow;
-				}
-			});
-
-		public void Notify(ProxyEventEnum action)
-		{
-			return;
 		}
 	}
 }

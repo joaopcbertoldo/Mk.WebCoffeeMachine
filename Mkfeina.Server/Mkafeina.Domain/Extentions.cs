@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Mkafeina.Domain
 {
@@ -10,9 +9,6 @@ namespace Mkafeina.Domain
 	{
 		public static string ToLogMessage(this string message, long messageNumber)
 			=> $"({messageNumber}){message}";
-
-		public static string ToDivisorLine(this string title)
-			=> new string('#', (Console.WindowWidth - title.Length) / 2 - 1) + $" {title} " + new string('#', (Console.WindowWidth - title.Length) / 2 - 1);
 
 		public enum FulfillStringMode { LeftAlignment = 0, Centered, RightAlignment }
 
@@ -51,7 +47,7 @@ namespace Mkafeina.Domain
 
 		public static int ParseToInt(this string str) => int.Parse(str);
 
-		public static bool ParseToBool(this string str) => str.ToLower() == "true" ? true : (str.ToLower() == "false" ? false : throw new ArgumentException()) ;
+		public static bool ParseToBool(this string str) => str.ToLower() == "true" ? true : (str.ToLower() == "false" ? false : throw new ArgumentException());
 
 		public static IEnumerable<string> SplitValueSeparatedBy(this string str, string separator) => str.Split(separator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
 																										 .Select(s => s.Trim())
@@ -61,43 +57,14 @@ namespace Mkafeina.Domain
 
 		public static UnityContainer UnityContainer(this AppDomain domain) => _container;
 
-		public static string FirstLetterToUpper(this string str) => str[0].ToString().ToUpper() + str.Substring(1);
-
 		public static string GenerateNameVersion(this string name)
 		{
 			int version;
 			var last4 = name.Substring(name.Length - 4, 4);
-#warning create consts form magic numbers here
 			if (last4[0] == '(' && last4[3] == ')' && int.TryParse(last4.Substring(1, 2), out version))
 				return name + $"({++version:00})";
 			else
 				return name + "(01)";
 		}
-
-		public static byte[] Encrypt(this byte[] bytes, byte[] key)
-		{
-			for (var i = 0; i < bytes.Length; i++)
-			{
-				bytes[i] += key[i % key.Length];
-				bytes[i] = (byte)(bytes[i] % 128);
-			}
-			return bytes;
-		}
-
-		public static byte[] Decrypt(this byte[] bytes, byte[] key)
-		{
-			for (var i = 0; i < bytes.Length; i++)
-			{
-				bytes[i] -= key[i % key.Length];
-				bytes[i] = (byte)(bytes[i] % 128);
-			}
-			return bytes;
-		}
-
-		public static string Encrypt(this string str, byte[] key)
-			=> Encoding.ASCII.GetString(Encoding.ASCII.GetBytes(str).Encrypt(key));
-
-		public static string DecryptAndGetString(this byte[] bytes, byte[] key)
-			=> Encoding.ASCII.GetString(bytes.Decrypt(key));
 	}
 }

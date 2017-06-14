@@ -1,4 +1,5 @@
 ﻿using Microsoft.Practices.Unity;
+using Mkafeina.CoffeeMachineSimulator;
 using Mkafeina.Domain;
 using Mkafeina.Domain.Dashboard;
 using Mkafeina.Domain.Dashboard.Panels;
@@ -41,6 +42,8 @@ namespace Mkafeina.Simulator
 
 			appconfig.ConfigChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.CONFIGS);
 			FakeCoffeMachine.Sgt.Signals.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.FAKE_COFFEE_MACHINE);
+			IngredientManipulator.Sgt.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.FAKE_COFFEE_MACHINE);
+
 
 			FakeCoffeMachine.Sgt.TurnOn();
 

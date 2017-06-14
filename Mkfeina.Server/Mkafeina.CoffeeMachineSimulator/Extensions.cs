@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Mkfeina.Simulator
+namespace Mkafeina.Simulator
 {
 	internal static class Extensions
 	{

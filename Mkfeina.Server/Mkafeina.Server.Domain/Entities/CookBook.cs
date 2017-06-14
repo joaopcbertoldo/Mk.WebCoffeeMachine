@@ -4,43 +4,22 @@ using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Mkafeina.Server.Domain.Entities
 {
-	public class CookBook
+	public abstract class CookBook
 	{
-		public const string
-			RECIPES = "recipes";
-
 		private Dictionary<string, Recipe> _recipes = new Dictionary<string, Recipe>();
 
-		private CMProxy _boss;
+		public Recipe this[string recipeName] { get { try { return _recipes[recipeName]; } catch { return null; } } }
 
-		public event Action<string, object> ChangeEvent;
+		public IEnumerable<string> AllRecipesNames { get => _recipes.Select(kv => kv.Key); }
 
-		public static CookBook CreateCookbook(CMProxy owner = null)
-		{
-			if (owner == null)
-				return new CookBook();
-
-			var cookbook = new CookBook()
-			{
-				_boss = owner
-			};
-			return cookbook;
-		}
-
-		private CookBook()
-		{
-		}
-
-		public void GetRecipesFromMainCookbook()
-		{
-			var mainCookbook = AppDomain.CurrentDomain.UnityContainer().Resolve<CookBook>();
-			foreach (var recipe in mainCookbook.AllRecipes(_boss?.Info.AvailableIngredients))
-				UpsertRecipe(recipe.Value);
-			_boss.OnChangeEvent(RECIPES);
-		}
+		public IEnumerable<KeyValuePair<string, Recipe>> AllRecipes(IEnumerable<string> availabelIngredients = null)
+			=> availabelIngredients == null ? _recipes.ToList() :
+									 _recipes.Where(kv => kv.Value.AllIngredients.Intersect(availabelIngredients).Count() ==
+														  kv.Value.AllIngredients.Count());
 
 		public void UpsertRecipe(Recipe recipe)
 		{
@@ -51,14 +30,62 @@ namespace Mkafeina.Server.Domain.Entities
 				_recipes.Add(recipe.Name, recipe);
 			}
 		}
+	}
 
-		public IEnumerable<string> AllRecipesNames { get => _recipes.Select(kv => kv.Key); }
+	public class MainCookBook : CookBook
+	{
+		public MainCookBook() : base()
+		{
+			ReloadRecipesFromAppConfig(wait: true);
+		}
 
-		public IEnumerable<KeyValuePair<string, Recipe>> AllRecipes(IEnumerable<string> availabelIngredients = null)
-			=> availabelIngredients == null ? _recipes.ToList() :
-									 _recipes.Where(kv => kv.Value.AllIngredients.Intersect(availabelIngredients).Count() ==
-														  kv.Value.AllIngredients.Count());
+		public void ReloadRecipesFromAppConfig(bool wait = false)
+		{
+			var appconfig = (AppConfig)AppDomain.CurrentDomain.UnityContainer().Resolve<AbstractAppConfig>();
+			appconfig.ReloadConfigs();
 
-		public Recipe this[string recipeName] { get { try { return _recipes[recipeName]; } catch { return null; } } }
+			var recipesNames = appconfig.Recipes;
+			var ingredients = appconfig.Ingredients;
+			var task = Task.Factory.StartNew(() =>
+			{
+				lock (this)
+				{
+					foreach (var name in recipesNames)
+					{
+						var recipe = new Recipe() { Name = name };
+						foreach (var i in ingredients)
+						{
+							var portion = appconfig.Portion(name, i);
+							if (portion == null)
+								continue;
+							recipe.AddIngredient(i, portion.Value);
+						}
+						UpsertRecipe(recipe);
+					}
+				}
+			});
+
+			if (wait)
+				task.Wait();
+		}
+
+	}
+
+	public class ProxyCookBook : CookBook
+	{
+		private CMProxy _owner;
+
+		public ProxyCookBook(CMProxy owner) : base()
+		{
+			_owner = owner;
+		}
+
+		public void GetRecipesFromMainCookbook()
+		{
+			var mainCookbook = AppDomain.CurrentDomain.UnityContainer().Resolve<MainCookBook>();
+			foreach (var recipe in mainCookbook.AllRecipes(_owner?.Info.AvailableIngredients))
+				UpsertRecipe(recipe.Value);
+			_owner.OnChangeEvent(CMProxy.CMPROXY_RECIPES);
+		}
 	}
 }

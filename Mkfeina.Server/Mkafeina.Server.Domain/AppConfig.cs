@@ -1,5 +1,7 @@
 ﻿using Mkafeina.Domain;
 using Mkafeina.Server.Domain.Entities;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mkafeina.Server.Domain
@@ -9,11 +11,7 @@ namespace Mkafeina.Server.Domain
 		public const string
 			RECIPES = "recipes",
 			INGREDIENTS = "ingredients",
-#warning checar se estas consts estao sendo usadas
-			STATUS = "status",
 			CONFIGS = "configs",
-			COMMANDS = "commands",
-			LOG = "log",
 
 			SERVER_ADDRESS = "server.address",
 			SERVER_NICE_ADDRESS = "server.niceAddress",
@@ -30,7 +28,13 @@ namespace Mkafeina.Server.Domain
 			EMAIL_SENDER_DEFAULT_CREDENTIALS = "emailSender.defaultCredentials",
 			EMAIL_SENDER_TIMEOUT_MS = "emailSender.timeoutMs",
 
-			MINIMUM_LEVEL = "minimumLevel";
+			MINIMUM_LEVEL = "minimumLevel"
+			;
+
+		public AppConfig()
+		{
+			ReloadConfigs();
+		}
 
 		public string ServerAddress { get => _cache[SERVER_ADDRESS]; }
 		public string ServerNiceAddress { get => _cache[SERVER_NICE_ADDRESS]; }
@@ -49,33 +53,11 @@ namespace Mkafeina.Server.Domain
 
 		internal int IngredientMinimumLevel(string name) => _cache[($"{name}." + MINIMUM_LEVEL)].ParseToInt();
 
-		public void LoadRecipesOnCookBookAsync(CookBook cookbook, bool wait = false)
-		{
-			ReloadConfigs();
+		public IEnumerable<string> Recipes { get => _cache[RECIPES].SplitValueSeparatedBy(","); }
 
-			var recipesNames = _cache[RECIPES].SplitValueSeparatedBy(",");
-			var ingredients = _cache[INGREDIENTS].SplitValueSeparatedBy(",");
-			var task = Task.Factory.StartNew(() =>
-			{
-				lock (cookbook)
-				{
-					foreach (var name in recipesNames)
-					{
-						var recipe = new Recipe() { Name = name };
-						foreach (var i in ingredients)
-						{
-							var portion = _cache[$"{name}.{i}"]?.ParseToInt();
-							if (portion == null)
-								continue;
-							recipe.AddIngredient(i, portion.Value);
-						}
-						cookbook.UpsertRecipe(recipe);
-					}
-				}
-			});
+		public IEnumerable<string> Ingredients { get => _cache [INGREDIENTS].SplitValueSeparatedBy(","); }
 
-			if (wait)
-				task.Wait();
-		}
+		public int? Portion(string recipe, string ingredient) => _cache[$"{recipe}.{ingredient}"]?.ParseToInt();
+
 	}
 }

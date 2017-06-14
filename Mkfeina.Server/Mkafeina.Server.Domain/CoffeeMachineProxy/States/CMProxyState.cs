@@ -105,7 +105,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 		internal virtual OrderResponse HandleCancelOrder(OrderRequest request)
 		{
 			_response = _ardResponseFac.CancelOrderResponse(this.GetType() == typeof(CMProxyStateProcessing) ? ErrorEnum.Void : ErrorEnum.ShouldNotBeProcessing);
-			_proxy._waitress.CancelAllOrders();
+			_proxy.Waitress.CancelAllOrders();
 			_proxy.Info.Enabled = false;
 			_proxy.Info.MakingCoffee = false;
 			LogOnDashAsync($"{_proxy.Info.UniqueName} called CANCEL ORDER, I told it to disable.");
