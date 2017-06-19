@@ -74,12 +74,20 @@ namespace Mkafeina.ArduinoDriver.Serial
 				}
 				catch (WebException exception)
 				{
+					Console.WriteLine();
+					Console.WriteLine("----------------------------------------------------------------------");
 					Console.WriteLine($"WEB Exception : {exception}");
+					Console.WriteLine("----------------------------------------------------------------------");
+					Console.WriteLine();
 					return null;
 				}
 				catch (Exception exception)
 				{
+					Console.WriteLine();
+					Console.WriteLine("----------------------------------------------------------------------");
 					Console.WriteLine($"Exception : {exception}");
+					Console.WriteLine("----------------------------------------------------------------------");
+					Console.WriteLine();
 					return null;
 				}
 			}
@@ -95,18 +103,20 @@ namespace Mkafeina.ArduinoDriver.Serial
 
 				if (response == null)
 				{
-					Console.WriteLine($"Null response");
 					return false;
 				}
 				else
 				{
-					Console.WriteLine($"Got response");
 					return true;
 				}
 			}
 			catch (Exception exception)
 			{
+				Console.WriteLine();
+				Console.WriteLine("----------------------------------------------------------------------");
 				Console.WriteLine($"Exception : {exception}");
+				Console.WriteLine("----------------------------------------------------------------------");
+				Console.WriteLine();
 				response = null;
 				return false;
 			}

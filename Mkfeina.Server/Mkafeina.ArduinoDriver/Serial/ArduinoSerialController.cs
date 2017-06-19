@@ -55,6 +55,9 @@ namespace Mkafeina.ArduinoDriver.Serial
 							{
 								inMsg = true;
 								msgBuf = "";
+								Console.WriteLine();
+								Console.WriteLine("----------------------------------------------------------------------");
+								Console.WriteLine($"Receiving from arduino");
 							}
 							else if (inMsg)
 							{
@@ -65,6 +68,10 @@ namespace Mkafeina.ArduinoDriver.Serial
 								{
 									inMsg = false;
 									completeMsg = true;
+									Console.WriteLine();
+									Console.WriteLine($"ENDED");
+									Console.WriteLine("----------------------------------------------------------------------");
+									Console.WriteLine();
 								}
 							}
 						}
@@ -73,8 +80,9 @@ namespace Mkafeina.ArduinoDriver.Serial
 						{
 							completeMsg = false;
 							var response = SendToServer(msgBuf);
+
 							Thread.Sleep(1000);
-							Console.WriteLine(response);
+
 							WriteResponse(response);
 							msgBuf = "";
 						}
@@ -97,7 +105,12 @@ namespace Mkafeina.ArduinoDriver.Serial
 			Port.Write(buffer, 0, 3);
 
 			buffer = Encoding.ASCII.GetBytes(responseStr);
-			Port.Write(buffer, 0, buffer.Length);
+			for (var i = 0; i < buffer.Length; i++)
+			{
+				Port.Write(buffer, i, 1);
+				Thread.Sleep(50);
+				//Port.Write(buffer, 0, buffer.Length);
+			}
 
 			buffer = new byte[] { Convert.ToByte(4), Convert.ToByte(4), Convert.ToByte(4) };
 			Port.Write(buffer, 0, 3);
@@ -181,6 +194,13 @@ namespace Mkafeina.ArduinoDriver.Serial
 				{
 					throw new Exception("WTF");
 				}
+
+				Console.WriteLine("----------------------------------------------------------------------");
+				Console.WriteLine($"Response");
+				Console.WriteLine("----------------------------------------------------------------------");
+				Console.WriteLine(responseStr);
+				Console.WriteLine("----------------------------------------------------------------------");
+				Console.WriteLine();
 			}
 			catch (JsonReaderException ex)
 			{
@@ -191,36 +211,6 @@ namespace Mkafeina.ArduinoDriver.Serial
 			}
 
 			return responseStr;
-		}
-
-		public static void StartSearchingForArduinos()
-		{
-			Task.Factory.StartNew(() =>
-			  {
-				  var already = new List<string>();
-				  while (true)
-				  {
-					  try
-					  {
-						  string[] portNames = SerialPort.GetPortNames();
-						  foreach (string portName in portNames)
-						  {
-							  if (already.Contains(portName))
-								  continue;
-							  var port = new SerialPort(portName, 9600);
-							  var serialController = new ArduinoSerialController()
-							  {
-								  Port = port
-							  };
-							  serialController.StartListening();
-							  already.Add(portName);
-						  }
-					  }
-					  catch (Exception e)
-					  {
-					  }
-				  }
-			  });
 		}
 	}
 }

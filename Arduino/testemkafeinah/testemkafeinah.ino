@@ -15,12 +15,15 @@ void setup()
   SetIO();
 
   OffsetsObj offsets = OffsetsObj_NULL;
+  
   offsets.CoffeeAvailable   = true;
   offsets.CoffeeEmptyOffset = 0.1;
   offsets.CoffeeFullOffset  = 4.1;
+  
   offsets.WaterAvailable    = true;
   offsets.WaterEmptyOffset  = 0.2;
   offsets.WaterFullOffset   = 4.2;
+  
   offsets.SugarAvailable    = true;
   offsets.SugarEmptyOffset  = 0.3;
   offsets.SugarFullOffset   = 4.3;
@@ -37,6 +40,8 @@ void setup()
 
 void loop() 
 {
+  delay(1000);
+  
   bool ack;
 
   UpdateFlags();
