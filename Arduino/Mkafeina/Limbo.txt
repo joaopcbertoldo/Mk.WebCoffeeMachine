@@ -1,0 +1,345 @@
+// Copyright João Paulo Casagrande Bertoldo 2017
+// USP
+
+#include <ArduinoJson.h>	
+
+const int ONOFF_SWITCH = 1;
+const int DISABLE_BUTTON = 2;
+const int OFFSETS_BUTTON = 3;
+const int REENABLE_BUTTON = 3;
+
+void SetControlButtons() {
+	pinMode(ONOFF_SWITCH, INPUT);
+	pinMode(DISABLE_BUTTON, INPUT_PULLUP);
+	pinMode(OFFSETS_BUTTON, INPUT_PULLUP);
+	pinMode(REENABLE_BUTTON, INPUT_PULLUP);
+}
+
+const int REGISTERED_LED = 7;
+const int ENABLED_LED = 8;
+
+void SetControlLeds() {
+	pinMode(REGISTERED_LED, OUTPUT);
+	pinMode(ENABLED_LED, OUTPUT);
+	
+	digitalWrite(REGISTERED_LED, LOW);
+	digitalWrite(ENABLED_LED, LOW);
+}
+
+const int RESPONSE_CODE = 0;
+const int COMMAND = 1;
+const int ERROR = 2;
+
+bool Registered = false;
+bool Enabled = false;
+
+float Coffee = 0;
+float Water  = 0;
+float Milk   = 0;
+float Sugar  = 0;
+
+enum MessageEnum
+{
+	MessageUndef = 0,
+
+	Registration = 1100,
+	Offsets = 1200,
+	Unregistration = 1300,
+
+	Signals = 2100,
+	Disabling = 2200,
+	Reenable = 2300,
+
+	GiveMeAnOrder = 3100,
+	Ready = 3200,
+	CancelOrders = 3300
+};
+
+enum ResponseCodeEnum
+{
+	ResponseCodeUndef   = 0,
+	OK                  = 200,
+	InvalidRequest      = 400,
+	InternalServerError = 401
+};
+
+enum CommandEnum
+{
+	CommandUndef = 0,
+	CommandVoid = 100,
+	Disable = 200,
+	ProcessOrder = 300,
+	Enable = 400,
+	Register = 500,
+	TakeAnOrder = 501
+};
+
+enum ErrorEnum
+{
+	ErrorUndef = 0,
+	MacAlreadyRegistered = 75,
+	ErrorVoid = 76,
+	MacNotRegistered = 77,
+	UnknownMessage = 78,
+	MissingIngredientsSetup = 79,
+	ShouldNotSentOffsets = 80,
+	MachineDisabledCannotTakeOrders = 81,
+	MachineAskedForOrderButThereIsNone = 82,
+	OrderAlreadyTaken = 83,
+	ShouldNotBeProcessing = 84,
+	ShouldBeAlreadyEnabled = 85,
+	WrongOrderReference = 86,
+	ShouldNotSendSignals = 87,
+	DisabledWithoutWarning = 88
+};
+
+
+char* RegistrationRequest(int msg, String uniqueName, bool coffeeAvailable, float coffeeEmptyOffset, float coffeeFullOffset, bool waterAvailable, float waterEmptyOffset, float waterFullOffset, bool milkAvailable, float milkEmptyOffset, float milkFullOffset, bool sugarAvailable, float sugarEmptyOffset, float sugarFullOffset)
+{
+	StaticJsonBuffer<500> buffer;
+	JsonObject& root = buffer.createObject();
+	
+	root["msg"]= msg;
+	root["mac"]= String("E841A7FCF5C");
+	root["un"] = uniqueName;		
+	
+	JsonObject& ingredientsSetup = root.createNestedObject("stp");
+	ingredientsSetup["ca"]   = coffeeAvailable;
+	ingredientsSetup["ce"]   = coffeeEmptyOffset;
+	ingredientsSetup["cf"]   = coffeeFullOffset;
+	ingredientsSetup["wa"]   = waterAvailable;
+	ingredientsSetup["we"]   = waterEmptyOffset;
+	ingredientsSetup["wf"]   = waterFullOffset;
+	ingredientsSetup["ma"]   = milkAvailable;
+	ingredientsSetup["me"]   = milkEmptyOffset;
+	ingredientsSetup["mf"]   = milkFullOffset;
+	ingredientsSetup["sa"]   = sugarAvailable;
+	ingredientsSetup["se"]   = sugarEmptyOffset;
+	ingredientsSetup["sf"]   = sugarFullOffset;
+	
+	char output[250];
+	root.printTo(output);
+	return output;
+}
+
+char* SignalsRequest(float coffee, float water, float milk, float sugar, bool enabled)
+{
+	StaticJsonBuffer<400> buffer;
+
+	JsonObject& root = buffer.createObject();
+	root["msg"] = (int)Signals;
+	root["mac"] = "E841A7FCF5C";
+
+	JsonObject& ingredientsSignals = root.createNestedObject("sig");
+	ingredientsSignals["c"]  = coffee;
+	ingredientsSignals["w"]  = water;
+	ingredientsSignals["m"]  = milk;
+	ingredientsSignals["s"]  = sugar;
+	ingredientsSignals["e"]  = enabled;
+
+	char output[150];
+	root.printTo(output);
+	return output;
+}
+
+char* ReadyRequest(String orderReference)
+{
+	StaticJsonBuffer<400>  ReadyBuffer;
+
+	JsonObject& root = ReadyBuffer.createObject();
+	root["msg"] = (int)Ready;
+	root["mac"] = "E841A7FCF5C";
+	root["oref"] = orderReference;
+
+	char output[50];
+	root.printTo(output);
+	return output;
+}
+
+char* Request(int msg)
+{
+	StaticJsonBuffer<100> buffer;
+	JsonObject& root = buffer.createObject();
+	root["msg"] = msg;
+	root["mac"] = "E841A7FCF5C";
+	char output[100];
+	root.printTo(output);
+	return output;
+}
+
+
+void ReadLine(char response[]){
+    
+    bool allRead = false;
+    int index = 0;
+	unsigned long start = millis();
+	unsigned long now;
+    while (Serial.available() && (now-start) < 10000){
+		delay(3);
+        if (Serial.available() > 0){
+            char c = Serial.read(); 
+			allRead = true;
+			response[index++] = c;
+        }
+		now = millis();
+    }
+	response[index] = '\0';
+	Serial.flush();
+}
+
+
+void HandShake(){
+  bool foundFlag = false;
+  byte inputBuffer[5];
+  while(!foundFlag){
+      if (Serial.available() == 5){
+        //Read buffer
+        inputBuffer[0] = Serial.read(); delay(100);    
+        inputBuffer[1] = Serial.read(); delay(100);
+        inputBuffer[2] = Serial.read(); delay(100);
+        inputBuffer[3] = Serial.read(); delay(100);
+        inputBuffer[4] = Serial.read(); delay(100);
+  
+        if(inputBuffer[0] == 16 && inputBuffer[1] == 128 && inputBuffer[2] == 0 && inputBuffer[3] == 0 && inputBuffer[4] == 4)
+        {
+            Serial.print("HELLO FROM ARDUINO");
+            foundFlag = true;
+        }
+      }
+    }
+}
+
+
+void ReadResponse(String response, int responseInts[])
+{
+	StaticJsonBuffer<200> jsonBuffer;
+	JsonObject& root = jsonBuffer.parseObject(response);
+
+	responseInts[RESPONSE_CODE] = root["rc"].as<int>();
+	responseInts[COMMAND]       = root["c"].as<int>();
+	responseInts[ERROR]         = root["e"].as<int>();
+}
+
+void SendRequest(char* request, int responseInts[]){
+	Serial.flush();
+	Serial.write(byte(1)); delay(100);
+	Serial.write(byte(1)); delay(100);
+	Serial.write(byte(1)); delay(100);
+	
+	Serial.print(request); delay(500);
+	
+	Serial.write(byte(2)); delay(100);
+	Serial.write(byte(2)); delay(100);
+	Serial.write(byte(2)); delay(100);
+	
+	char response[200];
+	
+	unsigned long start = millis();
+	unsigned long now = millis();
+	bool startflag = false;
+	int counter = 0;
+	while(!startflag && (now-start) < 10000){
+		if(Serial.available() > 0){
+			byte b = Serial.read();
+			if (b == byte(3)){
+				counter++;
+			}
+		}
+		
+		if(counter == 3){
+			startflag = true;
+		}
+		now = millis();
+	}
+		
+	
+	bool endflag = false;
+	counter = 0;
+	int index = 0;
+	start = millis();
+	now = millis();
+	while(!endflag && (now-start) < 10000){
+		if(Serial.available() > 0){
+			byte b = Serial.read();
+			if (b == byte(4)){
+				counter++;
+			}
+			else {
+				response[index++] = (char)b;
+			}
+		}
+		
+		if(counter == 3){
+			endflag = true;
+			response[index] = '\0';
+		}
+		now = millis();
+	}
+	
+	ReadResponse(response, responseInts);
+}
+
+void SendAck(int responseInts[]){
+	char buffer[50]; 
+	sprintf(buffer, "RC : %d, COM : %d, ERR : %d\n", responseInts[RESPONSE_CODE], responseInts[COMMAND], responseInts[ERROR]);
+	
+	Serial.write(byte(1)); delay(100);
+	Serial.write(byte(1)); delay(100);
+	Serial.write(byte(1)); delay(100);
+
+	Serial.print(buffer); delay(500);
+	
+	Serial.write(byte(2)); delay(100);
+	Serial.write(byte(2)); delay(100);
+	Serial.write(byte(2)); delay(100);
+}
+
+int RegisterNoMatterWhat()
+{
+	int responseInts[3] = {999,999,999};
+	while(responseInts[RESPONSE_CODE] != (int)OK && responseInts[ERROR] != (int)MacAlreadyRegistered){
+		char* request = RegistrationRequest((int)Registration, "Prototipo", true, 0.2, 4.5, true, 0.2, 4.5, false, 0, 0, true, 0.2, 4.5);
+		SendRequest(request, responseInts);
+		if (responseInts[RESPONSE_CODE] != 0){
+			SendAck(responseInts);
+		}
+	}
+	Registered = true;
+	return responseInts[COMMAND];
+}
+
+int ReportSignals()
+{
+	int responseInts[3] = {999,999,999};
+	char* request = SignalsRequest(Coffee, Water, Milk, Sugar, Enabled);
+	SendRequest(request, responseInts);
+	if (responseInts[RESPONSE_CODE] != 0){
+			SendAck(responseInts);
+	}
+	return responseInts[COMMAND];
+}
+
+int TryToTakeAndOrder(){
+	
+}
+
+
+
+void ReadGiveMeAnOrderResponse(String response, ResponseCodeEnum *responseCode, CommandEnum *command, ErrorEnum *error, String *orderReference, int *coffee, int *water, int *milk, int *sugar)
+{
+  StaticJsonBuffer<350> jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(response);
+  *responseCode = (ResponseCodeEnum) root[String("responseCode")].as<int>(); //(ResponseCodeEnum)root[String("responseCode")].as<int>();
+  *command      = (CommandEnum) root[String("command")].as<int>();      //(CommandEnum)root[String("command")].as<int>();
+  *error        = (ErrorEnum) root[String("error")].as<int>();        //(ErrorEnum)root[String("error")].as<int>();
+  
+  *orderReference = root[String("orderReference")].as<String>();
+  String recipeStr = root[String("recipe")].as<String>();
+  JsonObject& recipe = jsonBuffer.parseObject(recipeStr);
+  *coffee = recipe["coffee"]; //recipe["coffee"].as<int>;
+  *water  = recipe["water"];  // recipe["water"].as<int>;
+  *milk   = recipe["milk"];   //  recipe["milk"].as<int>;
+  *sugar  = recipe["sugar"];  // recipe["sugar"].as<int>;
+}
+

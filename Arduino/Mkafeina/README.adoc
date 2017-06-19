@@ -1,0 +1,3 @@
+= Mkafeina Server Communication =
+
+Auxiliar stuff to help Arduino write requests to the server and read the answers.
