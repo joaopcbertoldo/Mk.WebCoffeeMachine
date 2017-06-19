@@ -17,101 +17,101 @@ namespace Mkafeina.CoffeeMachineSimulator
 		internal RegistrationRequest Registration()
 			=> new RegistrationRequest()
 			{
-				Msg = MessageEnum.Registration,
-				Mac = _fakeCoffeMachine.Mac,
-				UniqueName = _fakeCoffeMachine.UniqueName,
-				IngredientsSetup = new IngredientsSetup()
+				msg = MessageEnum.Registration,
+				mac = _fakeCoffeMachine.Mac,
+				un = _fakeCoffeMachine.UniqueName,
+				stp = new IngredientsSetup()
 				{
-					CoffeeAvailable = true,
-					CoffeeEmptyOffset = _fakeCoffeMachine.Signals.CoffeeMin,
-					CoffeeFullOffset = _fakeCoffeMachine.Signals.CoffeeMax,
+					ca = true,
+					ce = _fakeCoffeMachine.Signals.CoffeeMin,
+					cf = _fakeCoffeMachine.Signals.CoffeeMax,
 
-					SugarAvailable = true,
-					SugarEmptyOffset = _fakeCoffeMachine.Signals.SugarMin,
-					SugarFullOffset = _fakeCoffeMachine.Signals.SugarMax,
+					sa = true,
+					se = _fakeCoffeMachine.Signals.SugarMin,
+					sf = _fakeCoffeMachine.Signals.SugarMax,
 
-					WaterAvailable = true,
-					WaterEmptyOffset = _fakeCoffeMachine.Signals.WaterMin,
-					WaterFullOffset = _fakeCoffeMachine.Signals.WaterMax
+					wa = true,
+					we = _fakeCoffeMachine.Signals.WaterMin,
+					wf = _fakeCoffeMachine.Signals.WaterMax
 				}
 			};
 
 		internal RegistrationRequest Offsets()
 			=> new RegistrationRequest()
 			{
-				Msg = MessageEnum.Offsets,
-				Mac = _fakeCoffeMachine.Mac,
-				IngredientsSetup = new IngredientsSetup()
+				msg = MessageEnum.Offsets,
+				mac = _fakeCoffeMachine.Mac,
+				stp = new IngredientsSetup()
 				{
-					CoffeeAvailable = true,
-					CoffeeEmptyOffset = _fakeCoffeMachine.Signals.CoffeeMin,
-					CoffeeFullOffset = _fakeCoffeMachine.Signals.CoffeeMax,
+					ca = true,
+					ce = _fakeCoffeMachine.Signals.CoffeeMin,
+					cf = _fakeCoffeMachine.Signals.CoffeeMax,
 
-					SugarAvailable = true,
-					SugarEmptyOffset = _fakeCoffeMachine.Signals.SugarMin,
-					SugarFullOffset = _fakeCoffeMachine.Signals.SugarMax,
+					sa = true,
+					se = _fakeCoffeMachine.Signals.SugarMin,
+					sf = _fakeCoffeMachine.Signals.SugarMax,
 
-					WaterAvailable = true,
-					WaterEmptyOffset = _fakeCoffeMachine.Signals.WaterMin,
-					WaterFullOffset = _fakeCoffeMachine.Signals.WaterMax
+					wa = true,
+					we = _fakeCoffeMachine.Signals.WaterMin,
+					wf = _fakeCoffeMachine.Signals.WaterMax
 				}
 			};
 
 		internal RegistrationRequest Unregistration()
 			=> new RegistrationRequest()
 			{
-				Msg = MessageEnum.Unregistration,
-				Mac = _fakeCoffeMachine.Mac
+				msg = MessageEnum.Unregistration,
+				mac = _fakeCoffeMachine.Mac
 			};
 
 		internal ReportRequest Signals()
 			=> new ReportRequest()
 			{
-				Msg = MessageEnum.Signals,
-				Mac = _fakeCoffeMachine.Mac,
-				Signals = new IngredientsSignals()
+				msg = MessageEnum.Signals,
+				mac = _fakeCoffeMachine.Mac,
+				sig = new IngredientsSignals()
 				{
-					Coffee = _fakeCoffeMachine.Signals.Coffee,
-					Water = _fakeCoffeMachine.Signals.Water,
-					Sugar = _fakeCoffeMachine.Signals.Sugar,
-					Enabled = _fakeCoffeMachine.Signals.Enabled
+					c = _fakeCoffeMachine.Signals.Coffee,
+					w = _fakeCoffeMachine.Signals.Water,
+					s = _fakeCoffeMachine.Signals.Sugar,
+					e = _fakeCoffeMachine.Signals.Enabled
 				}
 			};
 
 		internal ReportRequest Disabling()
 			=> new ReportRequest()
 			{
-				Msg = MessageEnum.Disabling,
-				Mac = _fakeCoffeMachine.Mac
+				msg = MessageEnum.Disabling,
+				mac = _fakeCoffeMachine.Mac
 			};
 
 		internal ReportRequest Reenable()
 			=> new ReportRequest()
 			{
-				Mac = _fakeCoffeMachine.Mac,
-				Msg = MessageEnum.Reenable
+				mac = _fakeCoffeMachine.Mac,
+				msg = MessageEnum.Reenable
 			};
 
 		internal OrderRequest GiveMeAnOrder()
 			=> new OrderRequest()
 			{
-				Mac = _fakeCoffeMachine.Mac,
-				Msg = MessageEnum.GiveMeAnOrder
+				mac = _fakeCoffeMachine.Mac,
+				msg = MessageEnum.GiveMeAnOrder
 			};
 
 		internal OrderRequest OrderReady(string orderReference)
 			=> new OrderRequest()
 			{
-				Mac = _fakeCoffeMachine.Mac,
-				Msg = MessageEnum.Ready,
-				OrderReference = orderReference
+				mac = _fakeCoffeMachine.Mac,
+				msg = MessageEnum.Ready,
+				oref = orderReference
 			};
 
 		internal OrderRequest CancelOrders()
 			=> new OrderRequest()
 			{
-				Mac = _fakeCoffeMachine.Mac,
-				Msg = MessageEnum.CancelOrders
+				mac = _fakeCoffeMachine.Mac,
+				msg = MessageEnum.CancelOrders
 			};
 	}
 }

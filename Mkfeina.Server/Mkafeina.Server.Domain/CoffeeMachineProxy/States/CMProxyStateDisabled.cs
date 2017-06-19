@@ -1,5 +1,4 @@
 ﻿using Mkafeina.Domain.ServerArduinoComm;
-using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using System;
 
 namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
@@ -40,8 +39,8 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 
 		internal override ReportResponse HandleSignals(ReportRequest request)
 		{
-			_response = _ardResponseFac.ReportOK();
-			_proxy.Info.UpdateIngredients(request.Signals);
+				_response = _ardResponseFac.ReportOK();
+				_proxy.Info.UpdateIngredients(request.sig);
 			return (ReportResponse)_response;
 		}
 	}

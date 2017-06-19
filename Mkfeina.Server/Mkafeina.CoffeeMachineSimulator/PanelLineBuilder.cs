@@ -102,10 +102,13 @@ namespace Mkafeina.Simulator
 					return "D : disable";
 
 				case CommandInterpreter.ONOFF:
-					return "ON/OFF";
+					return "ENTER : ON/OFF";
 
 				case CommandInterpreter.OFFSETS:
 					return "O : send offsets";
+
+				case CommandInterpreter.INSERT_ERROR:
+					return "E : insert error in making coffee";
 
 				#endregion Commands Panel Lines
 

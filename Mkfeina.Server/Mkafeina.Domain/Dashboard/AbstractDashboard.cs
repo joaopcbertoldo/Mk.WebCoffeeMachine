@@ -38,7 +38,12 @@ namespace Mkafeina.Domain.Dashboard
 			=> _panels.Add(panelName, new Panel(panelConfigs));
 
 		public void DeleteDynamicPanel(string uniqueName)
-			=> _panels.Remove(uniqueName);
+		{
+			var panel = _panels[uniqueName];
+			_panels.Remove(uniqueName);
+			panel.CleanUp();
+			ConsoleSpaceManager.UnregisterSpaceUsage(panel.Config.SpaceId);
+		}
 
 		public void AddFixedLinesToFixedPanels(IDictionary<string, IEnumerable<string>> panelsFixedLines)
 			=> _panels.ToList().ForEach(kv => kv.Value.AddFixedLines(panelsFixedLines[kv.Key]));

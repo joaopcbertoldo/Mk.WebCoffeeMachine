@@ -50,6 +50,7 @@ namespace Mkafeina.Server.Domain
 						CMProxyHub.Sgt.DisableSelectedCM();
 						break;
 
+
 					default:
 						return;
 				}

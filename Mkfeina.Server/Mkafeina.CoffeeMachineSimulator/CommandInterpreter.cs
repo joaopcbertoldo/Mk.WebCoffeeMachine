@@ -14,7 +14,8 @@ namespace Mkafeina.Simulator
 			REENABLE = "reenable",
 			DISABLE = "disable",
 			ONOFF = "on/off",
-			OFFSETS = "offsets"
+			OFFSETS = "offsets",
+			INSERT_ERROR = "error"
 			;
 
 		public override void HandleCommand(ConsoleKeyInfo key)
@@ -26,7 +27,7 @@ namespace Mkafeina.Simulator
 					break;
 
 				case ConsoleKey.Enter:
-					if (FakeCoffeMachine.Sgt.IsRunning)
+					if (FakeCoffeMachine.Sgt.IsOn)
 						FakeCoffeMachine.Sgt.TurnOff();
 					else
 						FakeCoffeMachine.Sgt.TurnOn();
@@ -54,6 +55,10 @@ namespace Mkafeina.Simulator
 
 				case ConsoleKey.R:
 					FakeCoffeMachine.Sgt._reenableFlag = true;
+					break;
+
+				case ConsoleKey.E:
+					FakeCoffeMachine.Sgt._insertProblemFlag = true;
 					break;
 
 				default:

@@ -43,11 +43,11 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 
 		internal override OrderResponse HandleReady(OrderRequest request)
 		{
-			if (request.OrderReference != OrderUnderProcess.Reference)
+			if (request.oref != OrderUnderProcess.Reference)
 			{
 				_response = _ardResponseFac.InvalidRequest<OrderResponse>(ErrorEnum.WrongOrderReference, CommandEnum.Disable);
 				CallProxyActionEvent(ProxyEventEnum.ReceivedReadyFromUnexpectedOrder);
-				LogOnDashAsync($"{_proxy.Info.UniqueName} called ready for order {request.OrderReference} but should be processing {OrderUnderProcess.Reference}.");
+				LogOnDashAsync($"{_proxy.Info.UniqueName} called ready for order {request.oref} but should be processing {OrderUnderProcess.Reference}.");
 				CallProxyActionEvent(ProxyEventEnum.ToldMachineToDisable);
 				return (OrderResponse)_response;
 			}

@@ -26,26 +26,26 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		internal CMProxyInfo(RegistrationRequest request, CMProxy owner)
 		{
 			_ingredients = new Dictionary<string, Ingredient>(Ingredient.GetAllExistingIngredientsInstances());
-			Mac = request.Mac;
-			UniqueName = request.UniqueName;
+			Mac = request.mac;
+			UniqueName = request.un;
 			_owner = owner;
-			SetupAvaiabilityAndOffsets(request.IngredientsSetup);
+			SetupAvaiabilityAndOffsets(request.stp);
 		}
 
 		public void SetupAvaiabilityAndOffsets(IngredientsSetup setup)
 		{
-			var ingredients = Ingredient.GetAllExistingIngredientsNames().ToList();
-			ingredients.ForEach(iName =>
+			var ingredients = Ingredient.GetAllExistingIngredientsNames().Select(name => Ingredient.GetCode(name)).ToList();
+			ingredients.ForEach(iCode =>
 			{
-				var isAvailable = (bool)typeof(IngredientsSetup).GetProperty($"{iName}Available").GetValue(setup);
+				var isAvailable = (bool)typeof(IngredientsSetup).GetProperty($"{iCode}a").GetValue(setup);
 				if (isAvailable)
 				{
-					var empty = (float)typeof(IngredientsSetup).GetProperty($"{iName}EmptyOffset").GetValue(setup);
-					var full = (float)typeof(IngredientsSetup).GetProperty($"{iName}FullOffset").GetValue(setup);
-					SetupIngredient(iName, isAvailable, empty, full);
+					var empty = (float)typeof(IngredientsSetup).GetProperty($"{iCode}e").GetValue(setup);
+					var full = (float)typeof(IngredientsSetup).GetProperty($"{iCode}f").GetValue(setup);
+					SetupIngredient(Ingredient.GetName(iCode), isAvailable, empty, full);
 				}
 				else
-					SetupIngredient(iName, false);
+					SetupIngredient(Ingredient.GetName(iCode), false);
 			});
 		}
 
@@ -97,7 +97,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 						.ToList()
 						.ForEach(i =>
 						{
-							i.Signal = (float)typeof(IngredientsSignals).GetProperty(i.Name).GetValue(signals);
+							i.Signal = (float)typeof(IngredientsSignals).GetProperty(i.Code.ToString()).GetValue(signals);
 							_owner.OnChangeEvent(i.Name);
 						});
 		}

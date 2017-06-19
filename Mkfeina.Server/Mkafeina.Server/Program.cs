@@ -6,7 +6,6 @@ using Mkafeina.Domain.Dashboard.Panels;
 using Mkafeina.Server.Domain;
 using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using Mkafeina.Server.Domain.Entities;
-using Mkafeina.Server.Serial;
 using System;
 using System.Runtime.InteropServices;
 
@@ -48,10 +47,6 @@ namespace Mkafeina.Server
 			CMProxyHub.Sgt.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel("server");
 
 			Dashboard.Sgt.LogAsync($"Server's dashboard is ready.");
-
-			ArduinoSerialController.StartSearchingForArduinos();
-
-			//while (true) { }
 
 			var serverAddress = appconfig.ServerAddress;
 			StartOptions options = new StartOptions();

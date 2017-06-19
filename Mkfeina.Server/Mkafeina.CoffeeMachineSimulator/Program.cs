@@ -45,7 +45,7 @@ namespace Mkafeina.Simulator
 			IngredientManipulator.Sgt.ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(AppConfig.FAKE_COFFEE_MACHINE);
 
 
-			FakeCoffeMachine.Sgt.TurnOn();
+			FakeCoffeMachine.Sgt.StartMaintask();
 
 			while (true) { }
 		}

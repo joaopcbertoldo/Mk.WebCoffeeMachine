@@ -2,28 +2,28 @@
 {
 	public class IngredientsSetup
 	{
-		public bool CoffeeAvailable { get; set; }
+		public bool ca { get; set; }
 
-		public float CoffeeEmptyOffset { get; set; }
+		public float ce { get; set; }
 
-		public float CoffeeFullOffset { get; set; }
+		public float cf { get; set; }
 
-		public bool WaterAvailable { get; set; }
+		public bool wa { get; set; }
 
-		public float WaterEmptyOffset { get; set; }
+		public float we { get; set; }
 
-		public float WaterFullOffset { get; set; }
+		public float wf { get; set; }
 
-		public bool MilkAvailable { get; set; }
+		public bool ma { get; set; }
 
-		public float MilkEmptyOffset { get; set; }
+		public float me { get; set; }
 
-		public float MilkFullOffset { get; set; }
+		public float mf { get; set; }
 
-		public bool SugarAvailable { get; set; }
+		public bool sa { get; set; }
 
-		public float SugarEmptyOffset { get; set; }
+		public float se { get; set; }
 
-		public float SugarFullOffset { get; set; }
+		public float sf { get; set; }
 	}
 }

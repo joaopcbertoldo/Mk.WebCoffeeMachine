@@ -18,7 +18,8 @@ namespace Mkafeina.Domain.ServerArduinoComm
 		Process = 300,
 		Enable = 400,
 		Register = 500,
-		TakeAnOrder = 501
+		TakeAnOrder = 600,
+		Unregister = 700
 	}
 
 	public enum ErrorEnum
@@ -37,16 +38,17 @@ namespace Mkafeina.Domain.ServerArduinoComm
 		ShouldBeAlreadyEnabled = 85,
 		WrongOrderReference = 86,
 		ShouldNotSendSignals = 87,
-		DisabledWithoutWarning = 88
+		DisabledWithoutWarning = 88,
+		ServerError = 89
 	}
 
 	public class ArduinoResponse
 	{
-		public ResponseCodeEnum ResponseCode { get; set; }
+		public ResponseCodeEnum rc { get; set; }
 
-		public CommandEnum Command { get; set; }
+		public CommandEnum c { get; set; }
 
-		public ErrorEnum Error { get; set; }
+		public ErrorEnum e { get; set; }
 	}
 
 	public class ReportResponse : ArduinoResponse
@@ -59,10 +61,10 @@ namespace Mkafeina.Domain.ServerArduinoComm
 
 	public class OrderResponse : ArduinoResponse
 	{
-		public string OrderReference { get; set; }
+		public string oref { get; set; }
 
 		// OLD VERSION
 		//public string Recipe { get; set; }
-		public RecipeObj Recipe { get; set; }
+		public RecipeObj rec { get; set; }
 	}
 }

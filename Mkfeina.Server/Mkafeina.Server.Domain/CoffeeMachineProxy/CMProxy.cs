@@ -53,6 +53,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		private CMProxyState _currentState;
 
 		internal bool _disableFlag;
+		internal bool _unregisterFlag;
 
 		internal CMProxyState CurrentState {
 			get { return _currentState; }
@@ -83,10 +84,10 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			Info = new CMProxyInfo(request, this);
 
 			var config = appconfig.PanelConfigs(COFFE_MACHINE);
-			config.Title = request.UniqueName;
-			Dashboard.Sgt.CreateDynamicPanel(request.UniqueName, config);
-			Dashboard.Sgt.AddFixedLinesToDynamicPanel(request.UniqueName, appconfig.PanelFixedLines(COFFE_MACHINE));
-			ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(request.UniqueName);
+			config.Title = request.un;
+			Dashboard.Sgt.CreateDynamicPanel(request.un, config);
+			Dashboard.Sgt.AddFixedLinesToDynamicPanel(request.un, appconfig.PanelFixedLines(COFFE_MACHINE));
+			ChangeEvent += Dashboard.Sgt.UpdateEventHandlerOfPanel(request.un);
 
 			DisabledState = new CMProxyStateDisabled(this);
 			EnabledState = new CMProxyStateEnabled(this);
@@ -105,6 +106,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			Subscribe(CMProxyHub.Sgt);
 		}
 
+
 		public void Subscribe(IProxyEventObserver observer)
 		{
 			EnabledState.ProxyActionEvent += observer.Notify;
@@ -116,6 +118,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		{
 			_disableFlag = true;
 		}
+
 
 		#region State calls
 

@@ -42,9 +42,9 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 		{
 			_response = _ardResponseFac.RegistrationOK();
 
-			if (request.IngredientsSetup == null)
+			if (request.stp == null)
 				return _ardResponseFac.InvalidRequest<RegistrationResponse>(ErrorEnum.MissingIngredientsSetup);
-			_proxy.Info.SetupAvaiabilityAndOffsets(request.IngredientsSetup);
+			_proxy.Info.SetupAvaiabilityAndOffsets(request.stp);
 			LogOnDashAsync($"{_proxy.Info.UniqueName} has redefined the ingredients' setup.");
 			CallProxyActionEvent(ProxyEventEnum.IngredientsSetupRedefined);
 			return (RegistrationResponse)_response;
@@ -52,8 +52,8 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 
 		internal virtual RegistrationResponse HandleUnregistration(RegistrationRequest request)
 		{
-			_response = _ardResponseFac.RegistrationOK();
-
+			_response = _ardResponseFac.RegistrationOK(CommandEnum.Unregister);
+		
 			var name = _proxy.Info.UniqueName;
 			var mac = _proxy.Info.Mac;
 			CMProxyHub.Sgt.Unregister(mac);
@@ -98,7 +98,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 			_proxy.Info.Enabled = true;
 			_proxy.Info.MakingCoffee = false;
 			CallProxyActionEvent(ProxyEventEnum.ToldThatItShouldNotBeProcessing);
-			LogOnDashAsync($"{_proxy.Info.UniqueName} called ready for order {request.OrderReference} but should not be processing.");
+			LogOnDashAsync($"{_proxy.Info.UniqueName} called ready for order {request.oref} but should not be processing.");
 			return (OrderResponse)_response;
 		}
 

@@ -12,7 +12,7 @@ using System.Net;
 
 namespace Mkafeina.CoffeeMachineSimulator
 {
-	internal class ServerCaller
+	public class ServerCaller
 	{
 		private const string
 			REGISTRATION_ROUTE = "/registration",
@@ -111,23 +111,23 @@ namespace Mkafeina.CoffeeMachineSimulator
 		{
 			try
 			{
-				request.Mac = _appconfig.SimulatorMac;
+				request.mac = _appconfig.SimulatorMac;
 				response = SendHttpRequest<TRequest, TResponse>(request, url);
 
 				if (response == null)
 				{
-					Dashboard.Sgt.LogAsync($"{request.Msg.ToString()} >> NULL RESPONSE.");
+					Dashboard.Sgt.LogAsync($"{request.msg.ToString()} >> NULL RESPONSE.");
 					return false;
 				}
 				else
 				{
-					Dashboard.Sgt.LogAsync($"{request.Msg.ToString()} >> RC={response.ResponseCode.ToString()} COMM={response.Command.ToString()} ERR={response.Error.ToString()}.");
+					Dashboard.Sgt.LogAsync($"{request.msg.ToString()} >> RC={response.rc.ToString()} COMM={response.c.ToString()} ERR={response.e.ToString()}.");
 					return true;
 				}
 			}
 			catch (Exception exception)
 			{
-				Dashboard.Sgt.LogAsync($"{request.Msg.ToString()} >> EXCEPTION THROWN.");
+				Dashboard.Sgt.LogAsync($"{request.msg.ToString()} >> EXCEPTION THROWN.");
 				response = null;
 				return false;
 			}
@@ -144,14 +144,14 @@ namespace Mkafeina.CoffeeMachineSimulator
 				if (!ack)
 					continue;
 
-				if (response.ResponseCode == ResponseCodeEnum.OK || response.Error == ErrorEnum.MacAlreadyRegistered)
+				if (response.rc == ResponseCodeEnum.OK || response.e == ErrorEnum.MacAlreadyRegistered)
 				{
 					_fakeCoffeMachine.Signals.Registered = true;
 					_fakeCoffeMachine.Signals.Enabled = true;
 				}
 			} while (!_fakeCoffeMachine.Signals.Registered);
 
-			return response.Command;
+			return response.c;
 		}
 
 		public bool TryToSendNewOffsets(out CommandEnum command)
@@ -171,7 +171,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 				var request = _ardRequestFac.Offsets();
 				RegistrationResponse response;
 				var ack = Send(request, out response, _serverApiUrl + REGISTRATION_ROUTE);
-				command = ack ? response.Command : CommandEnum.Undef;
+				command = ack ? response.c : CommandEnum.Undef;
 				if (ack)
 				{
 					Dashboard.Sgt.LogAsync($"Offsets have been reset on the server.");
@@ -193,13 +193,11 @@ namespace Mkafeina.CoffeeMachineSimulator
 			var unregistrationRequest = _ardRequestFac.Unregistration();
 			RegistrationResponse response;
 			var ack = Send(unregistrationRequest, out response, _serverApiUrl + REGISTRATION_ROUTE);
-			if (ack)
+			if (ack && response.c == CommandEnum.Unregister)
 			{
 				Dashboard.Sgt.LogAsync($"UNregistration of <<{_fakeCoffeMachine.UniqueName}>> SUCCESSFUL.");
-				_fakeCoffeMachine.Signals.Enabled = false;
-				_fakeCoffeMachine.Signals.Registered = false;
 			}
-			return ack;
+			return ack && response.c == CommandEnum.Unregister;
 		}
 
 		public bool TryToReportSignals(out CommandEnum command)
@@ -208,7 +206,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 			Dashboard.Sgt.LogAsync($"Reporting levels ({DateTime.Now.ToString()}).");
 			var levelsReportRequest = _ardRequestFac.Signals();
 			var ack = Send(levelsReportRequest, out response, _serverApiUrl + REPORT_ROUTE);
-			command = ack ? response.Command : CommandEnum.Undef;
+			command = ack ? response.c : CommandEnum.Undef;
 			return ack;
 		}
 
@@ -218,20 +216,24 @@ namespace Mkafeina.CoffeeMachineSimulator
 			var disablingRequest = _ardRequestFac.Disabling();
 			ReportResponse response;
 			var ack = Send(disablingRequest, out response, _serverApiUrl + REPORT_ROUTE);
-			command = response?.Command ?? CommandEnum.Undef;
+			command = response?.c ?? CommandEnum.Undef;
 			return ack;
 		}
 
-		public bool TryToReenable(out CommandEnum command)
+		public CommandEnum ReenableNoMatterWhat()
 		{
-			Dashboard.Sgt.LogAsync($"I will reenable!");
-			var reenablingRequest = _ardRequestFac.Reenable();
-			ReportResponse response;
-			var ack = Send(reenablingRequest, out response, _serverApiUrl + REPORT_ROUTE);
-			command = response?.Command ?? CommandEnum.Undef;
-			if (ack && command == CommandEnum.Enable)
-				_fakeCoffeMachine.Signals.Enabled = true;
-			return ack;
+			CommandEnum command;
+			do
+			{
+				Dashboard.Sgt.LogAsync($"I will reenable!");
+				var reenablingRequest = _ardRequestFac.Reenable();
+				ReportResponse response;
+				var ack = Send(reenablingRequest, out response, _serverApiUrl + REPORT_ROUTE);
+				command = response?.c ?? CommandEnum.Undef;
+				if (ack && command == CommandEnum.Enable)
+					_fakeCoffeMachine.Signals.Enabled = true;
+			} while (!_fakeCoffeMachine.Signals.Enabled);
+			return command;
 		}
 
 		// OLD VERSION
@@ -242,9 +244,9 @@ namespace Mkafeina.CoffeeMachineSimulator
 			var giveMeOrderRequest = _ardRequestFac.GiveMeAnOrder();
 			OrderResponse response;
 			var ack = Send(giveMeOrderRequest, out response, _serverApiUrl + ORDER_ROUTE);
-			orderRef = response?.OrderReference;
-			recipe = response?.Recipe;
-			command = response?.Command ?? CommandEnum.Undef;
+			orderRef = response?.oref;
+			recipe = response?.rec;
+			command = response?.c ?? CommandEnum.Undef;
 			if (orderRef != null)
 				Dashboard.Sgt.LogAsync($"ORDER RECEIVED!!!! ref: {orderRef}.");
 			return ack;
@@ -256,7 +258,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 			var orderReadyRequest = _ardRequestFac.OrderReady(_fakeCoffeMachine._orderRef);
 			OrderResponse response;
 			var ack = Send(orderReadyRequest, out response, _serverApiUrl + ORDER_ROUTE);
-			command = response?.Command ?? CommandEnum.Undef;
+			command = response?.c ?? CommandEnum.Undef;
 			return ack;
 		}
 
@@ -266,7 +268,7 @@ namespace Mkafeina.CoffeeMachineSimulator
 			var orderReadyRequest = _ardRequestFac.CancelOrders();
 			OrderResponse response;
 			var ack = Send(orderReadyRequest, out response, _serverApiUrl + ORDER_ROUTE);
-			command = response?.Command ?? CommandEnum.Undef;
+			command = response?.c ?? CommandEnum.Undef;
 			return ack;
 		}
 	}

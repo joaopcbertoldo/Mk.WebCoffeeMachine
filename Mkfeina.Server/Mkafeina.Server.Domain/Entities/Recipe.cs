@@ -107,11 +107,10 @@ namespace Mkafeina.Server.Domain.Entities
 		public RecipeObj ToRecipeObj()
 			=> new RecipeObj()
 			{
-				Name = Name,
-				Coffee = _ingredients["Coffee"],
-				Water = _ingredients["Water"],
-				Milk = _ingredients["Milk"],
-				Sugar = _ingredients["Sugar"]
+				c = this["Coffee"],
+				w  = this["Water"],
+				m   = this["Milk"],
+				s  = this["Sugar"]
 			};
 
 		public override string ToString()

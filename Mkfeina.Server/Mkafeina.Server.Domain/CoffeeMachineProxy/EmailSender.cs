@@ -54,46 +54,66 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			_timeoutMs = appconfig.EmailSenderTimeoutMs;
 		}
 
-		private void SendMailAsync(string to, string subject, string message)
-			=> Task.Factory.StartNew(() =>
-			   {
-				   SmtpClient client = new SmtpClient(_host, _port);
-				   client.DeliveryMethod = SmtpDeliveryMethod.Network;
-				   client.EnableSsl = _enableSsl;
-				   client.UseDefaultCredentials = _useDefaulCredentials;
-				   client.Timeout = _timeoutMs;
-				   client.Credentials = new NetworkCredential(_user, _password);
+		private bool SendMail(string to, string subject, string message)
+		{
+			SmtpClient client = new SmtpClient(_host, _port);
+			client.DeliveryMethod = SmtpDeliveryMethod.Network;
+			client.EnableSsl = _enableSsl;
+			client.UseDefaultCredentials = _useDefaulCredentials;
+			client.Timeout = _timeoutMs;
+			client.Credentials = new NetworkCredential(_user, _password);
 #warning logar exception
-				   try { client.Send(_user, to, subject, message); } catch (Exception ex) { }
-			   });
+			try { client.Send(_user, to, subject, message); }
+			catch (Exception ex) { return false; }
+			return true;
+		}
 
 		internal void SendMailOrderTakenAsync(Order orderUnderProcessing)
-		{
-			var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} sendo processado!";
-			var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) está sendo processado na MKafeína {_owner.Info.UniqueName}. \r\nSeu pedido estará pronto dentro de alguns instantes." + _signature;
-			SendMailAsync(orderUnderProcessing.CustomerEmail, subject, message);
-		}
+			=> Task.Factory.StartNew(() =>
+			{
+				var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} sendo processado!";
+				var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) está sendo processado na MKafeína {_owner.Info.UniqueName}. \r\nSeu pedido estará pronto dentro de alguns instantes." + _signature;
+				for (var i = 0; i < 4; i++)
+				{
+					if (SendMail(orderUnderProcessing.CustomerEmail, subject, message))
+						break;
+				}
+			});
 
 		internal void SendMailQueuePositionHasChangedAsync(Order order, int position)
-		{
-			var subject = $"MKafeína - Pedido ref #{order.Reference} - A fila andou...";
-			var message = $"A fila de cafés andou! O seu pedido de {order.RecipeName} (ref #{order.Reference}) está na posição {position} da fila." + _signature;
-			SendMailAsync(order.CustomerEmail, subject, message);
-		}
+			=> Task.Factory.StartNew(() =>
+			{
+				var subject = $"MKafeína - Pedido ref #{order.Reference} - A fila andou...";
+				var message = $"A fila de cafés andou! O seu pedido de {order.RecipeName} (ref #{order.Reference}) está na posição {position} da fila." + _signature;
+				for (var i = 0; i < 4; i++)
+				{
+					if (SendMail(order.CustomerEmail, subject, message))
+						break;
+				}
+			});
 
 		internal void SendMailOrderReadyAsync(Order orderUnderProcessing)
-		{
-			var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} pronto!";
-			var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) já pode ser retirado na MKafeína {_owner.Info.UniqueName}." + _signature;
-			SendMailAsync(orderUnderProcessing.CustomerEmail, subject, message);
-		}
+			=> Task.Factory.StartNew(() =>
+			{
+				var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} pronto!";
+				var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) já pode ser retirado na MKafeína {_owner.Info.UniqueName}." + _signature;
+				for (var i = 0; i < 4; i++)
+				{
+					if (SendMail(orderUnderProcessing.CustomerEmail, subject, message))
+						break;
+				}
+			});
 
 		internal void SendMailOrderCanceledAsync(Order orderUnderProcessing)
-		{
-			var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} CANCELADO!";
-			var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) não pode ser processado na MKafeína {_owner.Info.UniqueName}. \r\nPedimos desculpas pelo inconveniente e agradecemos a compreensão." + _signature;
-			SendMailAsync(orderUnderProcessing.CustomerEmail, subject, message);
-		}
-
+			=> Task.Factory.StartNew(() =>
+			{
+				var subject = $"MKafeína - Pedido ref #{orderUnderProcessing.Reference} CANCELADO!";
+				var message = $"O seu pedido de {orderUnderProcessing.RecipeName} (ref #{orderUnderProcessing.Reference}) não pode ser processado na MKafeína {_owner.Info.UniqueName}. \r\nPedimos desculpas pelo inconveniente e agradecemos a compreensão." + _signature;
+				for (var i = 0; i < 4; i++)
+				{
+					if (SendMail(orderUnderProcessing.CustomerEmail, subject, message))
+						break;
+				}
+			});
 	}
 }

@@ -21,25 +21,25 @@ namespace Mkafeina.Domain.ServerArduinoComm
 
 	public class ArduinoRequest
 	{
-		public string Mac { get; set; }
+		public string mac { get; set; }
 
-		public MessageEnum Msg { get; set; }
+		public MessageEnum msg { get; set; }
 	}
 
 	public class RegistrationRequest : ArduinoRequest
 	{
-		public string UniqueName { get; set; }
+		public string un { get; set; }
 
-		public IngredientsSetup IngredientsSetup { get; set; }
+		public IngredientsSetup stp { get; set; }
 	}
 
 	public class ReportRequest : ArduinoRequest
 	{
-		public IngredientsSignals Signals { get; set; }
+		public IngredientsSignals sig { get; set; }
 	}
 
 	public class OrderRequest : ArduinoRequest
 	{
-		public string OrderReference { get; set; }
+		public string oref { get; set; }
 	}
 }

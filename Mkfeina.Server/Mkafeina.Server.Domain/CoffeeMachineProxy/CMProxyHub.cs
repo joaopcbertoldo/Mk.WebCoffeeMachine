@@ -1,6 +1,4 @@
-﻿using Microsoft.Practices.Unity;
-using Mkafeina.Domain;
-using Mkafeina.Domain.Dashboard;
+﻿using Mkafeina.Domain;
 using Mkafeina.Domain.ServerArduinoComm;
 using System;
 using System.Collections.Generic;
@@ -14,7 +12,8 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			NEXT = "CMProxyHub.next",
 			PREVIOUS = "CMProxyHub.previous",
 			SELECTED = "CMProxyHub.selected",
-			DISABLE_SELECTED = "CMProxyHub.disableSelected"
+			DISABLE_SELECTED = "CMProxyHub.disableSelected",
+			UNREGISTER_SELECTED = "CMProxyHub.unregisterSelected"
 			;
 
 		private int _selectedCMIndex = 0;
@@ -69,18 +68,18 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		{
 			lock (_proxies)
 			{
-				if (_proxies.ContainsKey(request.Mac))
+				if (_proxies.ContainsKey(request.mac))
 				{
-					Dashboard.Sgt.LogAsync($"Registration request for mac <<{request.Mac}>> REJECTED (already registered).");
+					Dashboard.Sgt.LogAsync($"Registration request for mac <<{request.mac}>> REJECTED (already registered).");
 					return _ardResponseFac.InvalidRequest<RegistrationResponse>(ErrorEnum.MacAlreadyRegistered);
 				}
 				else
 				{
-					while (_proxies.Any(kv => kv.Value.Info.UniqueName == request.UniqueName))
-						request.UniqueName = request.UniqueName.GenerateNameVersion();
+					while (_proxies.Any(kv => kv.Value.Info.UniqueName == request.un))
+						request.un = request.un.GenerateNameVersion();
 					var proxy = new CMProxy(request);
-					_proxies.Add(request.Mac, proxy);
-					Dashboard.Sgt.LogAsync($"New Coffee Machine! Name: {request.UniqueName}.");
+					_proxies.Add(request.mac, proxy);
+					Dashboard.Sgt.LogAsync($"New Coffee Machine! Name: {request.un}.");
 					return _ardResponseFac.RegistrationOK(CommandEnum.Enable);
 				}
 			}
@@ -94,7 +93,8 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 					return;
 				else
 				{
-					var uniqueName = GetProxy(mac).Info.UniqueName;
+					var proxy = GetProxy(mac);
+					var uniqueName = proxy.Info.UniqueName;
 					Waitress.DeleteWaitress(mac);
 					_proxies.Remove(mac);
 					_selectedCMIndex = 0;
@@ -112,7 +112,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 
 		public void NextCM()
 		{
-			_selectedCMIndex = _selectedCMIndex + 1 >= _proxies.Count ? _proxies.Count -1 : _selectedCMIndex + 1;
+			_selectedCMIndex = _selectedCMIndex + 1 >= _proxies.Count ? _proxies.Count - 1 : _selectedCMIndex + 1;
 			OnChangeEvent(SELECTED);
 		}
 
@@ -122,8 +122,10 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			OnChangeEvent(SELECTED);
 		}
 
-		public string SelectedCM { get => _proxies.ElementAtOrDefault(_selectedCMIndex).Equals(default(KeyValuePair<string,CMProxy>)) ?
-												  "---" : _proxies.ElementAtOrDefault(_selectedCMIndex).Value.Info.UniqueName; }
+		public string SelectedCM {
+			get => _proxies.ElementAtOrDefault(_selectedCMIndex).Equals(default(KeyValuePair<string, CMProxy>)) ?
+						   "---" : _proxies.ElementAtOrDefault(_selectedCMIndex).Value.Info.UniqueName;
+		}
 
 		public void DisableSelectedCM()
 		{
@@ -132,5 +134,6 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 				return;
 			proxy.Value.SetDisableFlag();
 		}
+
 	}
 }

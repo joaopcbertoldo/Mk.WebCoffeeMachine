@@ -10,26 +10,26 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 			where TResponse : ArduinoResponse
 		{
 			var response = (TResponse)typeof(TResponse).GetConstructor(new Type[0]).Invoke(null);
-			response.Command = command;
-			response.Error = error;
-			response.ResponseCode = ResponseCodeEnum.InvalidRequest;
+			response.c = command;
+			response.e = error;
+			response.rc = ResponseCodeEnum.InvalidRequest;
 			return response;
 		}
 
 		public RegistrationResponse RegistrationOK(CommandEnum command = CommandEnum.Void)
 			=> new RegistrationResponse()
 			{
-				Command = command,
-				Error = ErrorEnum.Void,
-				ResponseCode = ResponseCodeEnum.OK
+				c = command,
+				e = ErrorEnum.Void,
+				rc = ResponseCodeEnum.OK
 			};
 
 		public ReportResponse ReportOK(CommandEnum command = CommandEnum.Void)
 			=> new ReportResponse()
 			{
-				Command = command,
-				Error = ErrorEnum.Void,
-				ResponseCode = ResponseCodeEnum.OK
+				c = command,
+				e = ErrorEnum.Void,
+				rc = ResponseCodeEnum.OK
 			};
 
 		// OLD VERSION
@@ -37,11 +37,11 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		public OrderResponse GiveMeAnOrderOK(string orderRef, RecipeObj recipe)
 			=> new OrderResponse()
 			{
-				Command = CommandEnum.Process,
-				ResponseCode = ResponseCodeEnum.OK,
-				Error = ErrorEnum.Void,
-				OrderReference = orderRef,
-				Recipe = recipe
+				c = CommandEnum.Process,
+				rc = ResponseCodeEnum.OK,
+				e = ErrorEnum.Void,
+				oref = orderRef,
+				rec = recipe
 			};
 
 		// OLD VERSION
@@ -49,27 +49,27 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		public OrderResponse GiveMeAnOrderAgain(string orderRef, RecipeObj recipe)
 			=> new OrderResponse()
 			{
-				Command = CommandEnum.Process,
-				ResponseCode = ResponseCodeEnum.InvalidRequest,
-				Error = ErrorEnum.OrderAlreadyTaken,
-				OrderReference = orderRef,
-				Recipe = recipe
+				c = CommandEnum.Process,
+				rc = ResponseCodeEnum.InvalidRequest,
+				e = ErrorEnum.OrderAlreadyTaken,
+				oref = orderRef,
+				rec = recipe
 			};
 
 		public OrderResponse ReadyOK()
 			=> new OrderResponse()
 			{
-				Command = CommandEnum.Void,
-				ResponseCode = ResponseCodeEnum.OK,
-				Error = ErrorEnum.Void
+				c = CommandEnum.Void,
+				rc = ResponseCodeEnum.OK,
+				e = ErrorEnum.Void
 			};
 
 		public OrderResponse CancelOrderResponse(ErrorEnum error)
 			=> new OrderResponse()
 			{
-				Command = CommandEnum.Disable,
-				Error = error,
-				ResponseCode = error == ErrorEnum.Void ? ResponseCodeEnum.OK : ResponseCodeEnum.InvalidRequest
+				c = CommandEnum.Disable,
+				e = error,
+				rc = error == ErrorEnum.Void ? ResponseCodeEnum.OK : ResponseCodeEnum.InvalidRequest
 			};
 	}
 }

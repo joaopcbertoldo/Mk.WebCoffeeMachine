@@ -46,7 +46,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 
 		internal override ReportResponse HandleSignals(ReportRequest request)
 		{
-			_proxy.Info.UpdateIngredients(request.Signals);
+			_proxy.Info.UpdateIngredients(request.sig);
 			if (_proxy._disableFlag)
 			{
 				_response = _ardResponseFac.ReportOK(CommandEnum.Disable);
@@ -64,7 +64,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 				LogOnDashAsync($"{_proxy.Info.UniqueName} has its levels under the minimum! I told it to disable.");
 				CallProxyActionEvent(ProxyEventEnum.ToldMachineToDisable);
 			}
-			else if (!request.Signals.Enabled)
+			else if (!request.sig.e)
 			{
 				_response = _ardResponseFac.InvalidRequest<ReportResponse>(ErrorEnum.DisabledWithoutWarning, CommandEnum.Disable);
 				_proxy.Info.Enabled = false;

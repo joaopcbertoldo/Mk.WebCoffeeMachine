@@ -21,7 +21,7 @@ namespace Mkafeina.Domain.Dashboard.Panels
 			if (__usedSpaces.Any())
 			{
 				var lastSpace = __usedSpaces.Last();
-				top = lastSpace[TOP] + lastSpace[HEIGHT] + VERTICAL_MARGIN_BETWEEN_PANELS * __usedSpaces.Count;
+				top = lastSpace[TOP] + lastSpace[HEIGHT] + VERTICAL_MARGIN_BETWEEN_PANELS;
 			}
 			else
 				top = 0;

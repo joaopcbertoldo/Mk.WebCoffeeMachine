@@ -39,6 +39,9 @@ namespace Mkafeina.Server.Domain
 				case CommandInterpreter.COMMAND_F4:
 					return "F4 : reload recipes in the cookbooks";
 
+				case CMProxyHub.UNREGISTER_SELECTED:
+					return "U : unregister selected coffee machine";
+
 				case CMProxyHub.DISABLE_SELECTED:
 					return "D : disable selected coffee machine";
 
