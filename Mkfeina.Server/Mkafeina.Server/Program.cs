@@ -48,12 +48,16 @@ namespace Mkafeina.Server
 
 			Dashboard.Sgt.LogAsync($"Server's dashboard is ready.");
 
+			
+
 			var serverAddress = appconfig.ServerAddress;
 			StartOptions options = new StartOptions();
 			options.Urls.Add(serverAddress);
+			options.Urls.Add("localhost:80");
 
 			using (WebApp.Start<Startup>(options))
 			{
+
 				Dashboard.Sgt.LogAsync($"Server's web api is on at <<{serverAddress}>>.");
 				Dashboard.Sgt.LogAsync($"Server's nice address is <<{appconfig.ServerNiceAddress}>>.");
 				while (true) { }

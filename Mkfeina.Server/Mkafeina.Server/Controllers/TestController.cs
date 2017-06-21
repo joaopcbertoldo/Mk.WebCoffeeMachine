@@ -7,7 +7,7 @@ namespace Mkafeina.Server.Controllers
 {
 	public class TestController : ApiController
 	{
-		[Route("test")]
+		[System.Web.Http.Route("test")]
 		public HttpResponseMessage Get()
 		{
 			Dashboard.Sgt.LogAsync($"Test request received at {DateTime.UtcNow}");

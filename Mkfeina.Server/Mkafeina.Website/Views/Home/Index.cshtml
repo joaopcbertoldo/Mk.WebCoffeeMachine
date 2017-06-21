@@ -9,15 +9,28 @@
 <div class="row">
     <div class="col-md-4">
         <h3>Selecione uma cafeteira.</h3>
-        <p> *** Preencher com selecionador de opções para as cafeteiras ativas *** </p>
+        <select>
+            <option value="null">Cafeteira</option>
+            <option value="Prototipo">Protótipo</option>
+            <option value="Simulador">Simulador</option>
+        </select>
     </div>
     <div class="col-md-4">
         <h3>Selecione seu pedido.</h3>
-        <p> *** Preencher com selecionador de opções para as receitas disponíveis na cafeteira selecionada *** </p>
+        <select>
+            <option value="null">Receita</option>
+            <option value="Fraco">Café fraco</option>
+            <option value="Medio">Café médio</option>
+            <option value="Forte">Café forte</option>
+            <option value="Doce">Café com muito açucar</option>
+            <option value="Amargo">Café sem açucar</option>
+        </select>
     </div>
     <div class="col-md-4">
         <h3>Preencha seu e-mail.</h3>
-        <p>*** Preencher com campo de input ***</p>
+        <form>
+            E-mail: <input type="text" name="email"><br>
+        </form>
     </div>
 </div>
 
@@ -25,7 +38,43 @@
     <div class="col-md-4">
     </div>
     <div class="col-md-4">
-        <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Eu quero café!!!</a>
+        <form action="/api/customer/order" method="post">
+            <button name="querocafe" value="order">Eu quero café</button>
+        </form>
+        
+        <a action="/api/customer/order" method="post" class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Eu quero café!!!</a>
+        
+        <a href="#" id="order">click me</a>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $('#order').click(function() {
+                    post('/api/customer/order', { "machineUniqueName": "Simulador", "recipeName": "Forte", "customerEmail": "joaopcbertoldo@gmail.com" })
+                });
+            });
+
+            function post(path, params, method) {
+                method = "post"; // Set method to post by default if not specified.
+
+                // The rest of this code assumes you are not using a library.
+                // It can be made less wordy if you use one.
+                var form = document.createElement("form");
+                form.setAttribute("method", method);
+                form.setAttribute("action", path);
+
+                for (var key in params) {
+                    if (params.hasOwnProperty(key)) {
+                        var hiddenField = document.createElement("input");
+                        hiddenField.setAttribute("type", "hidden");
+                        hiddenField.setAttribute("name", key);
+                        hiddenField.setAttribute("value", params[key]);
+                        form.appendChild(hiddenField);
+                    }
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        </script>
     </div>
     <div class="col-md-4">
     </div>

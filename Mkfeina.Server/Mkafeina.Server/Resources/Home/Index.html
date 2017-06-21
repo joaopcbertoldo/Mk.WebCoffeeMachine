@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKafeína</title>
+    <link href="/Content/bootstrap.css" rel="stylesheet" />
+    <link href="/Content/site.css" rel="stylesheet" />
+    <script src="/Scripts/modernizr-2.6.2.js"></script>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">MKafe&#237;na</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="/">In&#237;cio</a>
+                    </li>
+                    <li>
+                        <a href="/Home/About">Sobre</a>
+                    </li>
+                    <li>
+                        <a href="/Home/Contact">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+
+        <div class="jumbotron">
+            <h1>MKafeína</h1>
+            <p class="lead">Precisa de um MKafé? Aqui é rápido e fácil!</p>
+        </div>
+
+        <form>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <h3>Selecione uma cafeteira.</h3>
+                    <select id="coffeemachine" name="coffeemachine">
+                        <option value="null">Cafeteira</option>
+                        <option value="Prototipo">Protótipo</option>
+                        <option value="Simulador">Simulador</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <h3>Selecione seu pedido.</h3>
+                    <select id="recipe" name="recipe">
+                        <option value="null">Receita</option>
+                        <option value="Fraco">Café fraco</option>
+                        <option value="Medio">Café médio</option>
+                        <option value="Forte">Café forte</option>
+                        <option value="Doce">Café com muito açucar</option>
+                        <option value="Amargo">Café sem açucar</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <h3>Preencha seu e-mail.</h3>
+                    <input type="text" name="email">
+                    <br>
+                </div>
+            </div>
+
+            <br />
+            <br />
+
+            <div class="row">
+                <span style="display:inline-block; width: 500px;"></span>
+
+                <button type='button' onclick="postrequest()" class="btn btn-default" name="querocafe" value="order">Eu quero café</button>
+                <script>
+                    function postrequest() {
+                        var email = $("input[name=email]").val();
+
+                        var coffeemachineTag = document.getElementById("coffeemachine");
+                        var coffeemachine = coffeemachineTag.options[coffeemachineTag.selectedIndex].value;
+
+                        var recipeTag = document.getElementById("recipe");
+                        var recipe = recipeTag.options[recipeTag.selectedIndex].value;
+
+                        email = "joaopcbertoldo@gmail.com";
+                        recipe = "Forte";
+                        coffeemachine = "Simulador";
+
+                        if (email == "null" || coffeemachine == "null" || recipe == "null") {
+                            alert("Selecione a cafeteira e o pedido corretamente e preencha seu e-mail.")
+                        }
+                        else {
+                           console.log("will call ajax");
+                           $.ajax({
+                               method : 'POST',
+                               url: 'api/customer/order',
+                               data: { "machineUniqueName": coffeemachine, "recipeName": recipe, "customerEmail": email },
+                               dataType: 'application/json',
+                               success: function (response) {
+                                   console.log($.trim(response));
+                                   console.log($.trim(response.message));
+                                   if (response.code == 5) {
+                                       console.log("order received");
+                                   }
+                                   else {
+                                       console.log("order rejected");
+                                   }
+                               }
+                           });
+                        }
+
+                        return false;
+                    }
+                </script>
+            </div>
+        </form>
+
+        <hr />
+
+        <footer>
+            <p>&copy; 2017 - MKafeína - Engenharia Mecatrônica EESC USP</p>
+        </footer>
+    </div>
+
+
+    <script src="/Scripts/jquery-3.1.1.js"></script>
+    <script src="/Scripts/bootstrap.js"></script>
+    <script src="/Scripts/respond.js"></script>
+    <!-- Visual Studio Browser Link -->
+    <script type="application/json" id="__browserLink_initializationData">
+        {"appName":"Unknown","requestId":"e12c3668b83348ab91e2f1d7308a2797"}
+    </script>
+    <script type="text/javascript" src="http://localhost:8885/22711c61805b4d049eb4ada1b79cee58/browserLink" async="async"></script>
+    <!-- End Browser Link -->
+</body>
+</html>

@@ -1,5 +1,4 @@
-﻿using Mkafeina.Domain.ArduinoApi;
-using Mkafeina.Domain.ServerArduinoComm;
+﻿using Mkafeina.Domain.ServerArduinoComm;
 using Mkafeina.Server.Domain.CoffeeMachineProxy;
 using System.Web.Http;
 

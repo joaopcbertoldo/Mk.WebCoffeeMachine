@@ -1,0 +1,138 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKafeína</title>
+    <link href="/Content/bootstrap.css" rel="stylesheet" />
+    <link href="/Content/site.css" rel="stylesheet" />
+
+    <script src="/Scripts/modernizr-2.6.2.js"></script>
+
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">MKafe&#237;na</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">In&#237;cio</a></li>
+                    <li><a href="/Home/About">Sobre</a></li>
+                    <li><a href="/Home/Contact">Contato</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="container body-content">
+
+
+
+        <div class="jumbotron">
+            <h1>MKafeína</h1>
+            <p class="lead">Precisa de um MKafé? Aqui é rápido e fácil!</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <h3>Selecione uma cafeteira.</h3>
+                <select>
+                    <option value="null">Cafeteira</option>
+                    <option value="Prototipo">Protótipo</option>
+                    <option value="COFFEE MACHINE SIMULATOR">COFFEE MACHINE SIMULATOR</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <h3>Selecione seu pedido.</h3>
+                <select>
+                    <option value="null">Receita</option>
+                    <option value="Fraco">Café fraco</option>
+                    <option value="Medio">Café médio</option>
+                    <option value="Forte">Café forte</option>
+                    <option value="Doce">Café com muito açucar</option>
+                    <option value="Amargo">Café sem açucar</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <h3>Preencha seu e-mail.</h3>
+                <form>
+                    E-mail: <input type="text" name="email"><br>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+                <form action="/api/customer/order" method="post">
+                    <button name="querocafe" value="order">Eu quero café</button>
+                </form>
+
+                <a action="/api/customer/order" method="post" class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Eu quero café!!!</a>
+
+                <a href="#" id="order">click me</a>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('#order').click(function () {
+                            post('/api/customer/order', { "machineUniqueName": "COFFEE MACHINE SIMULATOR", "recipeName": "Forte", "customerEmail": "joaopcbertoldo@gmail.com" })
+                        });
+                    });
+
+                    function post(path, params, method) {
+                        method = method || "post"; // Set method to post by default if not specified.
+
+                        // The rest of this code assumes you are not using a library.
+                        // It can be made less wordy if you use one.
+                        var form = document.createElement("form");
+                        form.setAttribute("method", method);
+                        form.setAttribute("action", path);
+
+                        for (var key in params) {
+                            if (params.hasOwnProperty(key)) {
+                                var hiddenField = document.createElement("input");
+                                hiddenField.setAttribute("type", "hidden");
+                                hiddenField.setAttribute("name", key);
+                                hiddenField.setAttribute("value", params[key]);
+                                form.appendChild(hiddenField);
+                            }
+                        }
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                </script>
+            </div>
+            <div class="col-md-4">
+            </div>
+        </div>
+
+        <hr />
+        <footer>
+            <p>&copy; 2017 - MKafeína - Engenharia Mecatrônica EESC USP</p>
+        </footer>
+    </div>
+
+    <script src="/Scripts/jquery-3.1.1.js"></script>
+
+    <script src="/Scripts/bootstrap.js"></script>
+    <script src="/Scripts/respond.js"></script>
+
+
+
+    <!-- Visual Studio Browser Link -->
+    <script type="application/json" id="__browserLink_initializationData">
+        {"appName":"Chrome","requestId":"b75a8fa8d67b4c78b824f922072468d5"}
+    </script>
+    <script type="text/javascript" src="http://localhost:8885/22711c61805b4d049eb4ada1b79cee58/browserLink" async="async"></script>
+    <!-- End Browser Link -->
+
+</body>
+</html>
