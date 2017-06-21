@@ -25,10 +25,10 @@
                         <a href="/">In&#237;cio</a>
                     </li>
                     <li>
-                        <a href="/Home/About">Sobre</a>
+                        <a href="/Home/About.html">Sobre</a>
                     </li>
                     <li>
-                        <a href="/Home/Contact">Contato</a>
+                        <a href="/Home/Contact.html">Contato</a>
                     </li>
                 </ul>
             </div>
@@ -78,6 +78,7 @@
                 <span style="display:inline-block; width: 500px;"></span>
 
                 <button type='button' onclick="postrequest()" class="btn btn-default" name="querocafe" value="order">Eu quero café</button>
+
                 <script>
                     function postrequest() {
                         var email = $("input[name=email]").val();
@@ -88,12 +89,12 @@
                         var recipeTag = document.getElementById("recipe");
                         var recipe = recipeTag.options[recipeTag.selectedIndex].value;
 
-                        email = "joaopcbertoldo@gmail.com";
-                        recipe = "Forte";
-                        coffeemachine = "Simulador";
+                        //console.log(email);
+                        //console.log(coffeemachine);
+                        //console.log(recipe);
 
                         if (email == "null" || coffeemachine == "null" || recipe == "null") {
-                            alert("Selecione a cafeteira e o pedido corretamente e preencha seu e-mail.")
+                            alert("Selecione a cafeteira e o pedido corretamente e preencha seu e-mail.");
                         }
                         else {
                            console.log("will call ajax");
@@ -102,14 +103,15 @@
                                url: 'api/customer/order',
                                data: { "machineUniqueName": coffeemachine, "recipeName": recipe, "customerEmail": email },
                                dataType: 'application/json',
-                               success: function (response) {
-                                   console.log($.trim(response));
-                                   console.log($.trim(response.message));
-                                   if (response.code == 5) {
-                                       console.log("order received");
+                               complete: function (xhr, status) {
+                                   var jsonStr = xhr.responseText;
+                                   var json = $.parseJSON(jsonStr);
+                                   console.log(json);
+                                   if (json.code == 5) {
+                                       alert(json.message);
                                    }
                                    else {
-                                       console.log("order rejected");
+                                       alert("Pedido rejeitado, volte mais tarde.");
                                    }
                                }
                            });
@@ -136,7 +138,6 @@
     <script type="application/json" id="__browserLink_initializationData">
         {"appName":"Unknown","requestId":"e12c3668b83348ab91e2f1d7308a2797"}
     </script>
-    <script type="text/javascript" src="http://localhost:8885/22711c61805b4d049eb4ada1b79cee58/browserLink" async="async"></script>
     <!-- End Browser Link -->
 </body>
 </html>

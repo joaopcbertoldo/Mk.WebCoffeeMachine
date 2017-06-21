@@ -34,9 +34,9 @@
 			=> new CustomerOrderResponse()
 			{
 				Code = CustomerResponseCodeEnum.OrderReceived,
-				Message = $"Ok, your order was received ans is the {Ordinal(positionInQueue)} in the queue. " +
-						  (positionInQueue == 1 ? $"You will receive a message at <<{email}>> when it is ready." :
-												  $"You will receive a message at <<{email}>> when it start to be processed.")
+				Message = $"Pedido recebido! Você é o número {positionInQueue} na fila. " +
+						  (positionInQueue == 1 ? $"Você será notificado pelo e-mails <<{email}>> quando seu pedido estiver pronto." :
+												  $"Você será notificado pelo e-mails <<{email}>> quando seu pedido for processado.")
 			};
 
 		private string Ordinal(int positionInQueue)

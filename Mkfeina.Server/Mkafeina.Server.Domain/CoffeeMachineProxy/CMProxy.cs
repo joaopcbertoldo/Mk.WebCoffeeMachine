@@ -58,9 +58,9 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy
 		internal CMProxyState CurrentState {
 			get { return _currentState; }
 			set {
-				_currentState?.Wdt.Stop();
+				//_currentState?.Wdt.Stop();
 				_currentState = value;
-				_currentState.Wdt.Start();
+				//_currentState.Wdt.Start();
 				OnChangeEvent(CMPROXY_STATE);
 			}
 		}

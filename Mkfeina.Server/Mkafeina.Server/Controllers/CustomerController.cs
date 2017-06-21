@@ -16,7 +16,8 @@ namespace Mkafeina.Server.Controllers
 			var mac = CMProxyHub.Sgt.GetMac(cmName);
 			if (mac == null)
 				return _custResponsefac.InexistentCoffeeMachine();
-			return Waitress.GetWaitress(mac)?.HandleCustomerOrder(request);
+			var response = Waitress.GetWaitress(mac)?.HandleCustomerOrder(request);
+			return response;
 		}
 	}
 }

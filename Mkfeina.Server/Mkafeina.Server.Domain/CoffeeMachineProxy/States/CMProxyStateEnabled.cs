@@ -19,7 +19,7 @@ namespace Mkafeina.Server.Domain.CoffeeMachineProxy.States
 				CallProxyActionEvent(ProxyEventEnum.MachineDisabledForNotSendingMessagesForTooLong);
 			});
 
-		protected override TimeSpan WdtLimitTime => new TimeSpan(0, 10, 0);
+		protected override TimeSpan WdtLimitTime => new TimeSpan(0, 0, 10); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		internal override OrderResponse HandleGiveMeAnOrder(OrderRequest request)
 		{
