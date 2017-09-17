@@ -12,8 +12,8 @@ namespace Mkafeina.ArduinoDriver
 			do
 			{
 				portNames = SerialPort.GetPortNames(); 
-			} while (!portNames.Contains("COM4"));
-			var port = new SerialPort("COM4", 9600);
+			} while (!portNames.Contains("COM5"));
+			var port = new SerialPort("COM5", 9600);
 
 			var ctrlr = new ArduinoSerialController()
 			{

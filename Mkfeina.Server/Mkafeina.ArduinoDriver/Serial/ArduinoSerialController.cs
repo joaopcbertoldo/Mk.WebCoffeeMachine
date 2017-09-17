@@ -12,7 +12,7 @@ namespace Mkafeina.ArduinoDriver.Serial
 {
 	internal class ArduinoSerialController
 	{
-		private string _serverApiUrl = @"http://192.168.0.103:80/api/coffeemachine";
+		private string _serverApiUrl = @"http://www.mkafeina.eesc.usp.br:80/api/coffeemachine";
 
 		private const string
 		REGISTRATION_ROUTE = "/registration",
